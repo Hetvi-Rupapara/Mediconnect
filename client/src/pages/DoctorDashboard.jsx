@@ -75,8 +75,8 @@ function DoctorDashboard() {
           bio: profileData.bio || ''
         });
 
-        // Fetch today's appointments
-        const appRes = await fetch('/api/appointments/today', {
+        // Fetch all appointments for the doctor
+        const appRes = await fetch('/api/appointments', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const appData = await appRes.json();
@@ -212,6 +212,27 @@ function DoctorDashboard() {
     }
   };
 
+  // Group appointments into Today, Upcoming, and Past
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const todayAppointments = [];
+  const upcomingAppointments = [];
+  const pastAppointments = [];
+
+  appointments.forEach((app) => {
+    const appDate = new Date(app.date);
+    appDate.setHours(0, 0, 0, 0);
+
+    if (appDate.getTime() === today.getTime()) {
+      todayAppointments.push(app);
+    } else if (appDate.getTime() > today.getTime()) {
+      upcomingAppointments.push(app);
+    } else {
+      pastAppointments.push(app);
+    }
+  });
+
   if (loading) {
     return (
       <div className="container" style={{ textAlign: 'center', marginTop: '5rem' }}>
@@ -225,7 +246,7 @@ function DoctorDashboard() {
       <div style={{ marginTop: '2rem' }}>
         <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Doctor Dashboard</h2>
         <p style={{ color: 'var(--text-secondary)' }}>
-          Welcome, <strong>Dr. {doctorProfile?.name}</strong>. Manage your scheduled patients and weekly work schedule.
+          Welcome, <strong>{doctorProfile?.name && (doctorProfile.name.toLowerCase().startsWith('dr.') ? doctorProfile.name : `Dr. ${doctorProfile.name}`)}</strong>. Manage your scheduled patients and weekly work schedule.
         </p>
 
         {error && (
@@ -237,25 +258,25 @@ function DoctorDashboard() {
         {/* Dashboard split content */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: '2rem', marginTop: '2rem' }}>
           
-          {/* ============ TODAY'S APPOINTMENTS SECTION ============ */}
+          {/* ============ APPOINTMENTS PORTAL ============ */}
           <div>
+            {/* TODAY'S APPOINTMENTS */}
             <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--primary-color)' }}>
-              Today's Appointments ({appointments.length})
+              Today's Appointments ({todayAppointments.length})
             </h3>
 
-            {appointments.length === 0 ? (
-              <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#fff', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', marginTop: '1rem' }}>
+            {todayAppointments.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#fff', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', marginTop: '1rem', marginBottom: '2rem' }}>
                 <p style={{ color: 'var(--text-secondary)' }}>You have no appointments scheduled for today.</p>
               </div>
             ) : (
-              <div className="appointment-list-wrapper">
-                {appointments.map((app) => (
+              <div className="appointment-list-wrapper" style={{ marginBottom: '2rem' }}>
+                {todayAppointments.map((app) => (
                   <div key={app._id} className="appointment-row">
-                    {/* Patient info details */}
                     <div className="appointment-info">
                       <h3>{app.patient?.name}</h3>
                       <div className="appointment-time-tag">
-                        🕒 Scheduled Time Slot: <strong>{app.timeSlot}</strong>
+                        🕒 Time Slot: <strong>{app.timeSlot}</strong>
                       </div>
                       <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                         📧 Contact: {app.patient?.email}
@@ -267,7 +288,6 @@ function DoctorDashboard() {
                       )}
                     </div>
 
-                    {/* Action Panel based on appointment status */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem' }}>
                       <span className={`status-pill ${app.status}`}>
                         {app.status}
@@ -312,6 +332,117 @@ function DoctorDashboard() {
                           </>
                         )}
                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* UPCOMING APPOINTMENTS */}
+            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--text-secondary)', marginTop: '2rem' }}>
+              Upcoming Appointments ({upcomingAppointments.length})
+            </h3>
+
+            {upcomingAppointments.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#fff', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', marginTop: '1rem', marginBottom: '2rem' }}>
+                <p style={{ color: 'var(--text-secondary)' }}>You have no upcoming appointments scheduled.</p>
+              </div>
+            ) : (
+              <div className="appointment-list-wrapper" style={{ marginBottom: '2rem' }}>
+                {upcomingAppointments.map((app) => (
+                  <div key={app._id} className="appointment-row">
+                    <div className="appointment-info">
+                      <h3>{app.patient?.name}</h3>
+                      <div className="appointment-time-tag">
+                        📅 Date: <strong>{new Date(app.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong> | 🕒 Slot: <strong>{app.timeSlot}</strong>
+                      </div>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                        📧 Contact: {app.patient?.email}
+                      </span>
+                      {app.symptoms && (
+                        <div className="appointment-symptoms">
+                          <strong>Symptoms described:</strong> {app.symptoms}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem' }}>
+                      <span className={`status-pill ${app.status}`}>
+                        {app.status}
+                      </span>
+
+                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        {app.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleStatusChange(app._id, 'accepted')}
+                              className="btn"
+                              style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(app._id, 'rejected')}
+                              className="btn"
+                              style={{ backgroundColor: 'var(--danger-color)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+
+                        {app.status === 'accepted' && (
+                          <>
+                            <button
+                              onClick={() => handleStatusChange(app._id, 'completed')}
+                              className="btn"
+                              style={{ backgroundColor: 'var(--success-color)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                            >
+                              Complete
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(app._id, 'rejected')}
+                              className="btn"
+                              style={{ backgroundColor: 'var(--danger-color)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* PAST APPOINTMENTS */}
+            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--text-secondary)', marginTop: '2rem' }}>
+              Past Appointments ({pastAppointments.length})
+            </h3>
+
+            {pastAppointments.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#fff', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', marginTop: '1rem' }}>
+                <p style={{ color: 'var(--text-secondary)' }}>No past appointments recorded.</p>
+              </div>
+            ) : (
+              <div className="appointment-list-wrapper">
+                {pastAppointments.map((app) => (
+                  <div key={app._id} className="appointment-row" style={{ opacity: 0.8 }}>
+                    <div className="appointment-info">
+                      <h3>{app.patient?.name}</h3>
+                      <div className="appointment-time-tag">
+                        📅 Date: <strong>{new Date(app.date).toLocaleDateString()}</strong> | 🕒 Slot: <strong>{app.timeSlot}</strong>
+                      </div>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                        📧 Contact: {app.patient?.email}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <span className={`status-pill ${app.status}`} style={{ filter: 'grayscale(30%)' }}>
+                        {app.status}
+                      </span>
                     </div>
                   </div>
                 ))}
