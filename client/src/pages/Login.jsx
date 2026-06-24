@@ -8,13 +8,14 @@ import { useNavigate, Link } from 'react-router-dom';
 function Login() {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    role: 'patient' // Default selection is patient
   });
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const { email, password } = formData;
+  const { email, password, role } = formData;
 
   // Handle input field changes
   const onChange = (e) => {
@@ -40,6 +41,11 @@ function Login() {
 
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
+      }
+
+      // Verify that the user's registered role matches their selected login role
+      if (data.user.role !== role) {
+        throw new Error(`This account is registered as a ${data.user.role}, not a ${role}.`);
       }
 
       // Store JWT token and basic user details in local storage
@@ -92,7 +98,7 @@ function Login() {
           </div>
 
           {/* Password */}
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <label htmlFor="password" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: '500' }}>Password</label>
             <input
               type="password"
@@ -104,6 +110,21 @@ function Login() {
               placeholder="Enter your password"
               style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)', fontSize: '1rem' }}
             />
+          </div>
+
+          {/* Role selection dropdown */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label htmlFor="role" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: '500' }}>Login As</label>
+            <select
+              id="role"
+              name="role"
+              value={role}
+              onChange={onChange}
+              style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)', fontSize: '1rem', background: '#fff' }}
+            >
+              <option value="patient">Patient</option>
+              <option value="doctor">Doctor</option>
+            </select>
           </div>
 
           {/* Submit button */}

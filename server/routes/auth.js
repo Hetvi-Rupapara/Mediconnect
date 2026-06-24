@@ -24,9 +24,11 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ message: 'Invalid user role selected' });
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
     // Check if user already exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: normalizedEmail });
     if (user) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
@@ -34,7 +36,7 @@ router.post('/register', async (req, res) => {
     // Create a new User instance
     user = new User({
       name,
-      email,
+      email: normalizedEmail,
       password,
       role
     });
@@ -105,9 +107,11 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ message: 'Please enter all fields' });
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
     // Check for user in database
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
