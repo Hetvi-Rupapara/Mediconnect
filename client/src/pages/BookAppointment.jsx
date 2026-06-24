@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { CalendarIcon, ClockIcon } from '../components/Icons';
 
 /**
  * BookAppointment Component
@@ -19,6 +20,7 @@ function BookAppointment() {
   const [symptoms, setSymptoms] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
   const [dateValidationError, setDateValidationError] = useState('');
+  const [bookedSlots, setBookedSlots] = useState([]);
 
   // Static standard time slots for simplicity in Version 1
   const timeSlots = [
@@ -58,6 +60,36 @@ function BookAppointment() {
 
     fetchDoctor();
   }, [doctorId, navigate]);
+
+  // Fetch booked slots for the selected date
+  useEffect(() => {
+    if (!date || !doctorId) {
+      setBookedSlots([]);
+      return;
+    }
+
+    const fetchBookedSlots = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/appointments/booked?doctor=${doctorId}&date=${date}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setBookedSlots(data);
+          
+          // Clear selected slot if it gets booked in the meantime
+          if (data.includes(selectedSlot)) {
+            setSelectedSlot('');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching booked slots:', err);
+      }
+    };
+
+    fetchBookedSlots();
+  }, [date, doctorId, selectedSlot]);
 
   // Handle date input and validate it matches the doctor's available days
   const handleDateChange = (e) => {
@@ -163,8 +195,8 @@ function BookAppointment() {
         <form onSubmit={handleSubmit}>
           {/* Appointment Date */}
           <div style={{ marginBottom: '1.5rem' }}>
-            <label htmlFor="date" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>
-              Select Date
+            <label htmlFor="date" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
+              <CalendarIcon size={16} /> Select Date
             </label>
             <input
               type="date"
@@ -178,7 +210,7 @@ function BookAppointment() {
             />
             {dateValidationError && (
               <p style={{ color: 'var(--danger-color)', fontSize: '0.85rem', marginTop: '0.5rem', fontWeight: '500' }}>
-                ⚠️ {dateValidationError}
+                {dateValidationError}
               </p>
             )}
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
@@ -188,20 +220,31 @@ function BookAppointment() {
 
           {/* Time Slot Selection */}
           <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>
-              Select Time Slot
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
+              <ClockIcon size={16} /> Select Time Slot
             </label>
             <div className="timeslot-grid">
-              {timeSlots.map((slot) => (
-                <button
-                  key={slot}
-                  type="button"
-                  className={`timeslot-btn ${selectedSlot === slot ? 'selected' : ''}`}
-                  onClick={() => setSelectedSlot(slot)}
-                >
-                  {slot}
-                </button>
-              ))}
+              {timeSlots.map((slot) => {
+                const isBooked = bookedSlots.includes(slot);
+                return (
+                  <button
+                    key={slot}
+                    type="button"
+                    className={`timeslot-btn ${selectedSlot === slot ? 'selected' : ''}`}
+                    disabled={isBooked}
+                    onClick={() => setSelectedSlot(slot)}
+                    style={isBooked ? {
+                      backgroundColor: '#f1f5f9',
+                      color: '#94a3b8',
+                      cursor: 'not-allowed',
+                      borderColor: '#cbd5e1',
+                      textDecoration: 'line-through'
+                    } : {}}
+                  >
+                    {slot} {isBooked && ' (Unavailable)'}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

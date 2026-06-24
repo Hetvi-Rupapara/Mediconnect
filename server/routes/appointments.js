@@ -78,6 +78,42 @@ router.get('/', auth, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/appointments/booked
+ * @desc    Get booked/unavailable time slots for a doctor on a specific date
+ * @access  Private (Requires authentication)
+ */
+router.get('/booked', auth, async (req, res) => {
+  const { doctor, date } = req.query;
+
+  if (!doctor || !date) {
+    return res.status(400).json({ message: 'Please provide doctor ID and date' });
+  }
+
+  try {
+    // Setup date range for the requested date (00:00:00 to 23:59:59)
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Retrieve accepted or completed appointments for this doctor on this day
+    const appointments = await Appointment.find({
+      doctor,
+      date: { $gte: startOfDay, $lte: endOfDay },
+      status: { $in: ['accepted', 'completed'] }
+    }).select('timeSlot');
+
+    // Extract timeslot strings and send response
+    const bookedSlots = appointments.map((app) => app.timeSlot);
+    res.json(bookedSlots);
+  } catch (error) {
+    console.error('Fetch booked slots error:', error.message);
+    res.status(500).json({ message: 'Server error retrieving booked slots' });
+  }
+});
+
+/**
  * @route   DELETE /api/appointments/:id
  * @desc    Cancel an appointment (Safely deletes the record)
  * @access  Private (Requires authentication)
