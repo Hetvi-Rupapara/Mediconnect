@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Doctor = require('../models/Doctor');
+const User = require('../models/User');
 
 /**
  * @route   GET /api/doctors
@@ -26,8 +27,8 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    // Find doctors matching query, sorting by name
-    const doctors = await Doctor.find(query).sort({ name: 1 });
+    // Find doctors matching query, sorting by name, populating user email
+    const doctors = await Doctor.find(query).populate('user', 'email').sort({ name: 1 });
     res.json(doctors);
   } catch (error) {
     console.error('Fetch doctors list error:', error.message);
@@ -113,6 +114,53 @@ router.put('/profile/availability', auth, async (req, res) => {
   } catch (error) {
     console.error('Update availability error:', error.message);
     res.status(500).json({ message: 'Server error saving availability schedule' });
+  }
+});
+
+/**
+ * @route   PUT /api/doctors/profile/me
+ * @desc    Update doctor's detailed profile (name, specialization, experience, fees, hospital, bio)
+ * @access  Private (Requires authentication and doctor role)
+ */
+router.put('/profile/me', auth, async (req, res) => {
+  if (req.user.role !== 'doctor') {
+    return res.status(403).json({ message: 'Access denied: Doctors only' });
+  }
+
+  const { name, specialization, experience, fees, hospital, bio } = req.body;
+
+  // Simple validation
+  if (!name || !specialization || !experience || !fees || !hospital) {
+    return res.status(400).json({ message: 'Please provide all required profile fields' });
+  }
+
+  try {
+    // Find doctor profile
+    const profile = await Doctor.findOne({ user: req.user.id });
+    if (!profile) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    // Update doctor's name on their User record to keep it in sync
+    const user = await User.findById(req.user.id);
+    if (user) {
+      user.name = name;
+      await user.save();
+    }
+
+    // Update Doctor profile fields
+    profile.name = name;
+    profile.specialization = specialization;
+    profile.experience = Number(experience);
+    profile.fees = Number(fees);
+    profile.hospital = hospital;
+    profile.bio = bio || '';
+
+    await profile.save();
+    res.json(profile);
+  } catch (error) {
+    console.error('Update doctor profile error:', error.message);
+    res.status(500).json({ message: 'Server error saving doctor profile' });
   }
 });
 

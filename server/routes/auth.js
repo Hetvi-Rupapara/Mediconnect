@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
+const Doctor = require('../models/Doctor');
 
 /**
  * @route   POST /api/auth/register
@@ -44,6 +45,21 @@ router.post('/register', async (req, res) => {
 
     // Save the user in the database
     await user.save();
+
+    // If role is doctor, create default Doctor profile document
+    if (role === 'doctor') {
+      const doctorProfile = new Doctor({
+        user: user.id,
+        name: user.name,
+        specialization: 'General Physician',
+        experience: 1,
+        fees: 50,
+        hospital: 'MediConnect General Hospital',
+        bio: 'Welcome to my profile. I am a licensed General Physician.',
+        availability: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+      });
+      await doctorProfile.save();
+    }
 
     // Create JWT token payload
     const payload = {

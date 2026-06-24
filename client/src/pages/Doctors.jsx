@@ -111,6 +111,15 @@ function Doctors() {
                     <span>🏥 {doc.hospital}</span>
                     <span>💵 Consultation: ${doc.fees}</span>
                   </div>
+
+                  {doc.user && doc.user.email && (
+                    <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--primary-color)', background: '#eff6ff', padding: '0.5rem', borderRadius: '4px', border: '1px solid #bfdbfe' }}>
+                      🔑 Login Email: <strong>{doc.user.email}</strong>
+                      {doc.user.email.endsWith('@mediconnect.com') && (
+                        <span> (Pass: <code>doctorpassword123</code>)</span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ marginTop: '1rem' }}>

@@ -97,6 +97,20 @@ function DoctorDetails() {
             {/* Right side: Fees, Availability, and Booking CTA */}
             <div style={{ borderLeft: '1px solid var(--border-color)', paddingLeft: '2rem' }}>
               <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }}>
+                {doctor.user && doctor.user.email && (
+                  <div style={{ background: '#eff6ff', padding: '0.75rem', borderRadius: 'var(--border-radius)', border: '1px solid #bfdbfe', marginBottom: '1.25rem', fontSize: '0.85rem', color: 'var(--primary-color)' }}>
+                    <strong>🔑 Test Login Credentials:</strong>
+                    <div style={{ marginTop: '0.25rem' }}>
+                      Email: <code>{doctor.user.email}</code>
+                    </div>
+                    {doctor.user.email.endsWith('@mediconnect.com') && (
+                      <div>
+                        Password: <code>doctorpassword123</code>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <h4 style={{ marginBottom: '0.5rem' }}>Consultation Info</h4>
                 <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   ${doctor.fees} <span style={{ fontSize: '0.9rem', fontWeight: 'normal', color: 'var(--text-secondary)' }}>per visit</span>
