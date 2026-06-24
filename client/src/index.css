@@ -649,11 +649,16 @@ textarea:focus {
 }
 
 /* Landing Page Hero Styling */
-.hero-container-main {
-  text-align: center;
-  padding: 4rem 1.5rem;
-  max-width: 800px;
-  margin: 0 auto;
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 3rem;
+  align-items: center;
+  padding: 4rem 0;
+}
+
+.hero-left-content {
+  text-align: left;
 }
 
 .hero-title {
@@ -674,9 +679,41 @@ textarea:focus {
 
 .hero-btn-group {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.hero-right-image-container {
+  display: flex;
+  justify-content: center;
+}
+
+.hero-right-image {
+  width: 100%;
+  max-width: 480px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-premium);
+  transition: var(--transition-smooth);
+}
+
+.hero-right-image:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    padding: 2.5rem 0;
+  }
+  .hero-left-content {
+    text-align: center;
+  }
+  .hero-btn-group {
+    justify-content: center;
+  }
 }
 
 /* Features Grid section */

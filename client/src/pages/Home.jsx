@@ -19,48 +19,59 @@ function Home() {
   return (
     <div className="container">
       {/* 1. Hero Welcome Banner */}
-      <section className="hero-container-main">
-        <h1 className="hero-title">
-          Your Health.<br />
-          <span style={{ color: 'var(--primary)' }}>Connected & Simplified.</span>
-        </h1>
-        <p className="hero-subtitle">
-          MediConnect bridges the gap between patients and quality healthcare. 
-          Discover specialized medical practitioners, book appointments instantly, 
-          and consult our AI health assistant to navigate symptoms—all from one secure portal.
-        </p>
-        <div className="hero-btn-group">
-          {isAuthenticated ? (
-            <>
-              <Link to={dashboardLink} className="btn" style={{ padding: '0.85rem 2rem' }}>
-                Go to Dashboard
-              </Link>
-              <Link to="/doctors" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
-                onMouseOver={(e) => {
-                  e.target.style.backgroundColor = 'var(--primary-light)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.backgroundColor = '#ffffff';
-                }}>
-                Browse Doctors
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link to="/register" className="btn" style={{ padding: '0.85rem 2rem' }}>
-                Create Free Account
-              </Link>
-              <Link to="/login" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
-                onMouseOver={(e) => {
-                  e.target.style.backgroundColor = 'var(--primary-light)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.backgroundColor = '#ffffff';
-                }}>
-                Log In
-              </Link>
-            </>
-          )}
+      <section className="hero-grid">
+        <div className="hero-left-content">
+          <h1 className="hero-title">
+            Your Health.<br />
+            <span style={{ color: 'var(--primary)' }}>Connected & Simplified.</span>
+          </h1>
+          <p className="hero-subtitle">
+            MediConnect bridges the gap between patients and quality healthcare. 
+            Discover specialized medical practitioners, book appointments instantly, 
+            and consult our AI health assistant to navigate symptoms—all from one secure portal.
+          </p>
+          <div className="hero-btn-group">
+            {isAuthenticated ? (
+              <>
+                <Link to={dashboardLink} className="btn" style={{ padding: '0.85rem 2rem' }}>
+                  Go to Dashboard
+                </Link>
+                <Link to="/doctors" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
+                  onMouseOver={(e) => {
+                    e.target.style.backgroundColor = 'var(--primary-light)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.backgroundColor = '#ffffff';
+                  }}>
+                  Browse Doctors
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/register" className="btn" style={{ padding: '0.85rem 2rem' }}>
+                  Create Free Account
+                </Link>
+                <Link to="/login" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
+                  onMouseOver={(e) => {
+                    e.target.style.backgroundColor = 'var(--primary-light)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.backgroundColor = '#ffffff';
+                  }}>
+                  Log In
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Right column: Banner Image */}
+        <div className="hero-right-image-container">
+          <img 
+            src="/healthcare_hero_banner.png" 
+            alt="Friendly, diverse team of doctors in a bright modern medical center lobby" 
+            className="hero-right-image"
+          />
         </div>
       </section>
 
