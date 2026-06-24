@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CalendarIcon, ClockIcon, LocationIcon } from '../components/Icons';
 
 /**
  * Appointments Component
@@ -152,10 +153,10 @@ function Appointments() {
                       {app.doctor?.specialization}
                     </p>
                     <div className="appointment-time-tag">
-                      📅 {new Date(app.date).toLocaleDateString()} at 🕒 {app.timeSlot}
+                      <CalendarIcon size={14} style={{ marginRight: '0.25rem' }} /> {new Date(app.date).toLocaleDateString()} at <ClockIcon size={14} style={{ marginLeft: '0.5rem', marginRight: '0.25rem' }} /> {app.timeSlot}
                     </div>
                     <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      📍 {app.doctor?.hospital}
+                      <LocationIcon size={14} style={{ marginRight: '0.25rem' }} /> {app.doctor?.hospital}
                     </span>
                     {app.symptoms && (
                       <div className="appointment-symptoms">
@@ -205,10 +206,10 @@ function Appointments() {
                       {app.doctor?.specialization}
                     </p>
                     <div className="appointment-time-tag">
-                      📅 {new Date(app.date).toLocaleDateString()} at 🕒 {app.timeSlot}
+                      <CalendarIcon size={14} style={{ marginRight: '0.25rem' }} /> {new Date(app.date).toLocaleDateString()} at <ClockIcon size={14} style={{ marginLeft: '0.5rem', marginRight: '0.25rem' }} /> {app.timeSlot}
                     </div>
                     <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      📍 {app.doctor?.hospital}
+                      <LocationIcon size={14} style={{ marginRight: '0.25rem' }} /> {app.doctor?.hospital}
                     </span>
                     {app.symptoms && (
                       <div className="appointment-symptoms" style={{ borderLeftColor: '#cbd5e1', backgroundColor: '#f1f5f9' }}>

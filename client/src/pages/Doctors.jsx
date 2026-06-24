@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { BriefcaseIcon, LocationIcon, DollarIcon, ShieldIcon } from '../components/Icons';
 
 /**
  * Doctors Component
@@ -107,16 +108,16 @@ function Doctors() {
                   <div className="doctor-specialization">{doc.specialization}</div>
                   
                   <div className="doctor-details-preview">
-                    <span>💼 {doc.experience} years experience</span>
-                    <span>🏥 {doc.hospital}</span>
-                    <span>💵 Consultation: ${doc.fees}</span>
+                    <span><BriefcaseIcon size={14} style={{ marginRight: '0.25rem' }} /> {doc.experience} years experience</span>
+                    <span><LocationIcon size={14} style={{ marginRight: '0.25rem' }} /> {doc.hospital}</span>
+                    <span><DollarIcon size={14} style={{ marginRight: '0.25rem' }} /> Consultation: ${doc.fees}</span>
                   </div>
 
                   {doc.user && doc.user.email && (
-                    <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--primary-color)', background: '#eff6ff', padding: '0.5rem', borderRadius: '4px', border: '1px solid #bfdbfe' }}>
-                      🔑 Login Email: <strong>{doc.user.email}</strong>
+                    <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--primary-color)', background: '#eff6ff', padding: '0.5rem', borderRadius: '4px', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center' }}>
+                      <ShieldIcon size={14} style={{ marginRight: '0.4rem', color: 'var(--primary)' }} /> Login Email: <strong style={{ marginLeft: '0.25rem' }}>{doc.user.email}</strong>
                       {doc.user.email.endsWith('@mediconnect.com') && (
-                        <span> (Pass: <code>doctorpassword123</code>)</span>
+                        <span style={{ marginLeft: '0.25rem' }}> (Pass: <code>doctorpassword123</code>)</span>
                       )}
                     </div>
                   )}

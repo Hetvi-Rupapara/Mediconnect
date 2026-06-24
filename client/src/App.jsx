@@ -11,6 +11,7 @@ import Appointments from './pages/Appointments';
 import DoctorDashboard from './pages/DoctorDashboard';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import { StethoscopeIcon } from './components/Icons';
 
 /**
  * App Component
@@ -36,7 +37,7 @@ function App() {
         <header>
           <div className="header-container">
             <Link to="/" className="logo">
-              <span>🩺</span> MediConnect
+              <StethoscopeIcon size={24} style={{ marginRight: '0.4rem' }} /> MediConnect
             </Link>
             <nav>
               <ul className="nav-links">

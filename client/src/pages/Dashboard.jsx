@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { CalendarIcon, ClockIcon, LocationIcon, SearchIcon, AIIcon } from '../components/Icons';
 
 /**
  * Dashboard Component
@@ -248,10 +249,10 @@ function Dashboard() {
                       {app.doctor?.specialization}
                     </p>
                     <div className="appointment-time-tag">
-                      📅 {new Date(app.date).toLocaleDateString()} at 🕒 {app.timeSlot}
+                      <CalendarIcon size={14} style={{ marginRight: '0.25rem' }} /> {new Date(app.date).toLocaleDateString()} at <ClockIcon size={14} style={{ marginLeft: '0.5rem', marginRight: '0.25rem' }} /> {app.timeSlot}
                     </div>
                     <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      📍 {app.doctor?.hospital}
+                      <LocationIcon size={14} style={{ marginRight: '0.25rem' }} /> {app.doctor?.hospital}
                     </span>
                   </div>
 
@@ -379,18 +380,18 @@ function Dashboard() {
           </h3>
           <div className="actions-grid">
             <Link to="/doctors" className="action-link-btn">
-              <span>🔍</span> Find and Browse Doctors
+              <SearchIcon size={18} style={{ marginRight: '0.5rem' }} /> Find and Browse Doctors
             </Link>
             <Link to="/appointments" className="action-link-btn">
-              <span>📅</span> My Appointments History
+              <CalendarIcon size={18} style={{ marginRight: '0.5rem' }} /> My Appointments History
             </Link>
             {/* AI Assistant page trigger placeholder */}
             <button 
               onClick={() => alert('AI Assistant features will be introduced in the next stage!')} 
               className="action-link-btn"
-              style={{ width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1rem' }}
+              style={{ width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1rem', display: 'flex', alignItems: 'center' }}
             >
-              <span>🤖</span> Consult AI Health Assistant
+              <AIIcon size={18} style={{ marginRight: '0.5rem' }} /> Consult AI Health Assistant
             </button>
           </div>
         </div>

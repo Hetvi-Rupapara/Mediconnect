@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { StethoscopeIcon, CalendarIcon, AIIcon } from '../components/Icons';
 
 /**
  * Home Component
@@ -68,7 +69,9 @@ function Home() {
       <section className="features-grid">
         {/* Feature 1 */}
         <div className="feature-box">
-          <span className="feature-icon">🩺</span>
+          <span className="feature-icon">
+            <StethoscopeIcon size={36} color="var(--primary)" style={{ marginRight: 0 }} />
+          </span>
           <h4>Find Specialized Doctors</h4>
           <p>
             Filter and search through our verified list of medical practitioners including 
@@ -78,7 +81,9 @@ function Home() {
 
         {/* Feature 2 */}
         <div className="feature-box">
-          <span className="feature-icon">📅</span>
+          <span className="feature-icon">
+            <CalendarIcon size={36} color="var(--primary)" style={{ marginRight: 0 }} />
+          </span>
           <h4>Instant Appointment Booking</h4>
           <p>
             View live weekly available slots for doctors and schedule your consultations. 
@@ -88,7 +93,9 @@ function Home() {
 
         {/* Feature 3 */}
         <div className="feature-box">
-          <span className="feature-icon">🤖</span>
+          <span className="feature-icon">
+            <AIIcon size={36} color="var(--primary)" style={{ marginRight: 0 }} />
+          </span>
           <h4>AI Health Assistant</h4>
           <p>
             List your symptoms to consult our rule-based AI analyzer. Receive immediate specialist 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { LocationIcon, ShieldIcon, DollarIcon, ClockIcon, BriefcaseIcon } from '../components/Icons';
 
 /**
  * DoctorDetails Component
@@ -74,8 +75,8 @@ function DoctorDetails() {
             <div className="doctor-specialization" style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
               {doctor.specialization}
             </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-              📍 Affiliated with <strong>{doctor.hospital}</strong>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
+              <LocationIcon size={14} style={{ marginRight: '0.25rem', color: 'var(--primary)' }} /> Affiliated with <strong style={{ marginLeft: '0.25rem' }}>{doctor.hospital}</strong>
             </p>
           </div>
 
@@ -99,7 +100,7 @@ function DoctorDetails() {
               <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }}>
                 {doctor.user && doctor.user.email && (
                   <div style={{ background: '#eff6ff', padding: '0.75rem', borderRadius: 'var(--border-radius)', border: '1px solid #bfdbfe', marginBottom: '1.25rem', fontSize: '0.85rem', color: 'var(--primary-color)' }}>
-                    <strong>🔑 Test Login Credentials:</strong>
+                    <strong style={{ display: 'flex', alignItems: 'center' }}><ShieldIcon size={14} style={{ marginRight: '0.25rem' }} /> Test Login Credentials:</strong>
                     <div style={{ marginTop: '0.25rem' }}>
                       Email: <code>{doctor.user.email}</code>
                     </div>
@@ -111,12 +112,12 @@ function DoctorDetails() {
                   </div>
                 )}
 
-                <h4 style={{ marginBottom: '0.5rem' }}>Consultation Info</h4>
+                <h4 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }}><DollarIcon size={16} style={{ color: 'var(--primary)' }} /> Consultation Info</h4>
                 <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   ${doctor.fees} <span style={{ fontSize: '0.9rem', fontWeight: 'normal', color: 'var(--text-secondary)' }}>per visit</span>
                 </div>
 
-                <h4 style={{ marginBottom: '0.25rem' }}>Weekly Schedule</h4>
+                <h4 style={{ marginBottom: '0.25rem', display: 'flex', alignItems: 'center' }}><ClockIcon size={16} style={{ color: 'var(--primary)' }} /> Weekly Schedule</h4>
                 {doctor.availability && doctor.availability.length > 0 ? (
                   <ul className="availability-list">
                     {doctor.availability.map((day) => (

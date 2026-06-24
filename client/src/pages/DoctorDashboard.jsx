@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ClockIcon, EmailIcon, CalendarIcon } from '../components/Icons';
 
 /**
  * DoctorDashboard Component
@@ -276,10 +277,10 @@ function DoctorDashboard() {
                     <div className="appointment-info">
                       <h3>{app.patient?.name}</h3>
                       <div className="appointment-time-tag">
-                        🕒 Time Slot: <strong>{app.timeSlot}</strong>
+                        <ClockIcon size={14} style={{ marginRight: '0.25rem' }} /> Time Slot: <strong>{app.timeSlot}</strong>
                       </div>
                       <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        📧 Contact: {app.patient?.email}
+                        <EmailIcon size={14} style={{ marginRight: '0.25rem' }} /> Contact: {app.patient?.email}
                       </span>
                       {app.symptoms && (
                         <div className="appointment-symptoms">
@@ -354,10 +355,10 @@ function DoctorDashboard() {
                     <div className="appointment-info">
                       <h3>{app.patient?.name}</h3>
                       <div className="appointment-time-tag">
-                        📅 Date: <strong>{new Date(app.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong> | 🕒 Slot: <strong>{app.timeSlot}</strong>
+                        <CalendarIcon size={14} style={{ marginRight: '0.25rem' }} /> Date: <strong>{new Date(app.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong> | <ClockIcon size={14} style={{ marginLeft: '0.5rem', marginRight: '0.25rem' }} /> Slot: <strong>{app.timeSlot}</strong>
                       </div>
                       <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        📧 Contact: {app.patient?.email}
+                        <EmailIcon size={14} style={{ marginRight: '0.25rem' }} /> Contact: {app.patient?.email}
                       </span>
                       {app.symptoms && (
                         <div className="appointment-symptoms">
@@ -432,10 +433,10 @@ function DoctorDashboard() {
                     <div className="appointment-info">
                       <h3>{app.patient?.name}</h3>
                       <div className="appointment-time-tag">
-                        📅 Date: <strong>{new Date(app.date).toLocaleDateString()}</strong> | 🕒 Slot: <strong>{app.timeSlot}</strong>
+                        <CalendarIcon size={14} style={{ marginRight: '0.25rem' }} /> Date: <strong>{new Date(app.date).toLocaleDateString()}</strong> | <ClockIcon size={14} style={{ marginLeft: '0.5rem', marginRight: '0.25rem' }} /> Slot: <strong>{app.timeSlot}</strong>
                       </div>
                       <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        📧 Contact: {app.patient?.email}
+                        <EmailIcon size={14} style={{ marginRight: '0.25rem' }} /> Contact: {app.patient?.email}
                       </span>
                     </div>
 
