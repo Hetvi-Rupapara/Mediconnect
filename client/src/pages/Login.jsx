@@ -121,54 +121,6 @@ function Login() {
           Don't have an account? <Link to="/register" style={{ color: 'var(--primary-color)', fontWeight: '500', textDecoration: 'none' }}>Register</Link>
         </p>
       </div>
-
-      {/* Quick Tester Login Helper */}
-      <div className="card" style={{ maxWidth: '500px', margin: '1.5rem auto 3rem auto', background: '#f8fafc', borderColor: '#e2e8f0' }}>
-        <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          🛠️ Tester Quick Login
-        </h4>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-          Click an account to automatically fill the credentials:
-        </p>
-
-        <div style={{ display: 'grid', gap: '0.75rem' }}>
-          <div>
-            <strong style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem', color: 'var(--text-primary)' }}>Seeded Doctor Accounts:</strong>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <button 
-                type="button"
-                className="btn" 
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem', border: '1px solid var(--primary-color)', background: 'transparent', color: 'var(--primary-color)', cursor: 'pointer' }}
-                onClick={() => setFormData({ email: 'sarah.jenkins@mediconnect.com', password: 'doctorpassword123' })}
-              >
-                Dr. Sarah (Cardio)
-              </button>
-              <button 
-                type="button"
-                className="btn" 
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem', border: '1px solid var(--primary-color)', background: 'transparent', color: 'var(--primary-color)', cursor: 'pointer' }}
-                onClick={() => setFormData({ email: 'amit.patel@mediconnect.com', password: 'doctorpassword123' })}
-              >
-                Dr. Amit (Derma)
-              </button>
-              <button 
-                type="button"
-                className="btn" 
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem', border: '1px solid var(--primary-color)', background: 'transparent', color: 'var(--primary-color)', cursor: 'pointer' }}
-                onClick={() => setFormData({ email: 'emily.watson@mediconnect.com', password: 'doctorpassword123' })}
-              >
-                Dr. Emily (Pedia)
-              </button>
-            </div>
-          </div>
-
-          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              💡 <em>To test as a Patient, simply use the "Register" link above to sign up instantly.</em>
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
