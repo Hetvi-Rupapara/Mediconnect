@@ -15,6 +15,7 @@ function DoctorDetails() {
 
   // Check if patient is logged in (needed to show booking alerts later)
   const isLoggedIn = !!localStorage.getItem('token');
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   useEffect(() => {
     const fetchDoctorDetails = async () => {
@@ -140,15 +141,35 @@ function DoctorDetails() {
                     >
                       Book Appointment
                     </button>
-                  ) : (
-                    <div style={{ textAlign: 'center' }}>
-                      <Link to="/login" className="btn" style={{ width: '100%', textAlign: 'center', marginBottom: '0.5rem' }}>
-                        Login to Book
-                      </Link>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        You must be signed in as a patient to request appointments.
+                  ) : showAuthPrompt ? (
+                    <div style={{ textAlign: 'center', background: '#fff', padding: '1rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }}>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                        Please sign in or create an account to book an appointment.
                       </p>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
+                        <Link to="/login" className="btn" style={{ width: '100%', textAlign: 'center' }}>
+                          Login
+                        </Link>
+                        <Link to="/register" className="btn" style={{ width: '100%', textAlign: 'center', backgroundColor: 'var(--text-secondary)' }}>
+                          Create Account
+                        </Link>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowAuthPrompt(false)} 
+                        style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem', cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        Cancel
+                      </button>
                     </div>
+                  ) : (
+                    <button 
+                      onClick={() => setShowAuthPrompt(true)} 
+                      className="btn" 
+                      style={{ width: '100%', textAlign: 'center' }}
+                    >
+                      Book Appointment
+                    </button>
                   )}
                 </div>
               </div>

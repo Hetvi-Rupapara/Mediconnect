@@ -30,14 +30,14 @@ function Home() {
         <Link to="/doctors" className="btn" style={{ padding: '0.85rem 2rem' }}>
           Find Doctors
         </Link>
-        <Link to="/login" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
+        <Link to="/register" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
           onMouseOver={(e) => {
             e.target.style.backgroundColor = 'var(--primary-light)';
           }}
           onMouseOut={(e) => {
             e.target.style.backgroundColor = '#ffffff';
           }}>
-          Login
+          Create Account
         </Link>
       </>
     );
@@ -184,18 +184,6 @@ function Home() {
         </div>
       </div>
 
-      {/* 4. Footer & Medical Disclaimer */}
-      <footer style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', paddingBottom: '2.5rem', textAlign: 'center' }}>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-          © {new Date().getFullYear()} MediConnect. All rights reserved.
-        </p>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem', maxWidth: '700px', margin: '0.5rem auto 0 auto', lineHeight: '1.5' }}>
-          <strong>Medical Disclaimer:</strong> MediConnect is an educational demonstration application. 
-          The information and AI-based suggestions provided are for educational and tracking purposes only 
-          and should not be used as professional medical diagnosis or treatment. For urgent health matters, 
-          always contact a licensed doctor or emergency healthcare response services.
-        </p>
-      </footer>
     </div>
   );
 }

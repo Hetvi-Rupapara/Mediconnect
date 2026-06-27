@@ -13,6 +13,9 @@ function Doctors() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const isLoggedIn = !!localStorage.getItem('token');
+  const [promptDoctorId, setPromptDoctorId] = useState(null);
+
   // List of distinct specializations for the filter dropdown
   const specializations = [
     'Cardiologist',
@@ -123,10 +126,44 @@ function Doctors() {
                   )}
                 </div>
 
-                <div style={{ marginTop: '1rem' }}>
-                  <Link to={`/doctors/${doc._id}`} className="btn" style={{ width: '100%', textAlign: 'center' }}>
-                    View Profile
-                  </Link>
+                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {promptDoctorId === doc._id ? (
+                    <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                        Please sign in or create an account to book an appointment.
+                      </p>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <Link to="/login" className="btn" style={{ flex: 1, padding: '0.4rem 0.5rem', fontSize: '0.8rem', textAlign: 'center' }}>Login</Link>
+                        <Link to="/register" className="btn" style={{ flex: 1, padding: '0.4rem 0.5rem', fontSize: '0.8rem', backgroundColor: 'var(--text-secondary)', textAlign: 'center' }}>Create Account</Link>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setPromptDoctorId(null)} 
+                        style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.5rem', cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <Link to={`/doctors/${doc._id}`} className="btn" style={{ width: '100%', textAlign: 'center' }}>
+                        View Profile
+                      </Link>
+                      {isLoggedIn ? (
+                        <Link to={`/book/${doc._id}`} className="btn" style={{ width: '100%', textAlign: 'center', backgroundColor: 'var(--primary-color)' }}>
+                          Book Appointment
+                        </Link>
+                      ) : (
+                        <button 
+                          onClick={() => setPromptDoctorId(doc._id)} 
+                          className="btn" 
+                          style={{ width: '100%', textAlign: 'center', backgroundColor: 'var(--primary-color)' }}
+                        >
+                          Book Appointment
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             ))}
