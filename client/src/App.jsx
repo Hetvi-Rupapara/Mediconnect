@@ -95,25 +95,6 @@ function App() {
                         </li>
                       </>
                     )}
-                    <li>
-                      <button 
-                         onClick={handleLogout} 
-                         style={{ 
-                           background: 'none', 
-                           border: 'none', 
-                           color: 'var(--text-secondary)', 
-                           cursor: 'pointer', 
-                           fontWeight: '500',
-                           fontSize: '1rem',
-                           fontFamily: 'inherit',
-                           transition: 'var(--transition)'
-                         }}
-                         onMouseOver={(e) => e.target.style.color = 'var(--danger-color)'}
-                         onMouseOut={(e) => e.target.style.color = 'var(--text-secondary)'}
-                      >
-                        Logout
-                      </button>
-                    </li>
                   </>
                 ) : (
                   <>
