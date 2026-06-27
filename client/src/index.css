@@ -91,7 +91,7 @@ header {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  padding: 1rem 0;
+  padding: 0.8rem 0; /* Compact padding to match 70-76px navbar height */
   box-shadow: var(--shadow-sm);
 }
 
@@ -104,25 +104,76 @@ header {
   padding: 0 1.25rem;
 }
 
-.logo {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--primary);
+/* Flexbox Brand Container */
+.logo-brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  letter-spacing: -0.03em;
+  gap: 12px; /* 10-14px spacing */
+  text-decoration: none;
+  transition: var(--transition-smooth);
 }
 
-.logo span {
-  font-size: 1.6rem;
+.logo-brand:hover {
+  transform: scale(1.02);
+  opacity: 0.95;
+}
+
+/* Responsive Logo Emblem Container (No border, sharp aspect ratio) */
+.logo-img-container {
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: #fff;
+  border: none;
+}
+
+@media (max-width: 1024px) { /* Tablet */
+  .logo-img-container {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 768px) { /* Mobile */
+  .logo-img-container {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* Balanced Brand Text */
+.logo-text {
+  font-size: 30px; /* 30-34px */
+  font-weight: 600; /* 600-700 */
+  color: var(--text-main);
+  letter-spacing: -0.04em; /* Slightly tighter spacing */
+  line-height: 1;
+  margin: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) { /* Tablet */
+  .logo-text {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 768px) { /* Mobile */
+  .logo-text {
+    font-size: 22px;
+  }
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1.75rem;
+  gap: 1.5rem; /* Clean equal spacing aligned with brand section */
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .nav-links a {

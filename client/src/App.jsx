@@ -41,8 +41,8 @@ function App() {
         {/* Navigation Bar */}
         <header>
           <div className="header-container">
-            <Link to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-              <div style={{ width: '48px', height: '48px', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: '#fff', boxShadow: 'var(--shadow-sm)' }}>
+            <Link to="/" className="logo-brand">
+              <div className="logo-img-container">
                 <img 
                   src="/logo.jpg" 
                   alt="MediConnect Logo" 
@@ -55,7 +55,7 @@ function App() {
                   }} 
                 />
               </div>
-              <span style={{ fontWeight: '800', fontSize: '1.4rem', color: 'var(--text-main)', letterSpacing: '-0.02em' }}>MediConnect</span>
+              <span className="logo-text">MediConnect</span>
             </Link>
             <nav>
               <ul className="nav-links">
