@@ -178,7 +178,7 @@ router.get('/profile', auth, async (req, res) => {
  * @access  Private (Requires JWT token)
  */
 router.put('/profile', auth, async (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, phone, age } = req.body;
 
   // Simple validation
   if (!name || !email) {
@@ -200,6 +200,12 @@ router.put('/profile', auth, async (req, res) => {
 
     user.name = name;
     user.email = email;
+    if (phone !== undefined) {
+      user.phone = phone;
+    }
+    if (age !== undefined) {
+      user.age = age === '' || age === null ? null : Number(age);
+    }
     await user.save();
 
     // Return updated details (excluding password)
@@ -208,6 +214,8 @@ router.put('/profile', auth, async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      phone: user.phone,
+      age: user.age,
       createdAt: user.createdAt
     });
   } catch (error) {

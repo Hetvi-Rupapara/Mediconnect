@@ -4,7 +4,7 @@ import { ClockIcon, EmailIcon, CalendarIcon } from '../components/Icons';
 
 /**
  * DoctorDashboard Component
- * Portal dashboard that manages today's appointment statuses and weekly availability schedule.
+ * Portal dashboard that manages today's, upcoming, and past appointment statuses.
  */
 function DoctorDashboard() {
   const navigate = useNavigate();
@@ -15,28 +15,8 @@ function DoctorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Availability checkboxes state
-  const [availability, setAvailability] = useState([]);
-  const [saveLoading, setSaveLoading] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-
-  // Profile editing form states
-  const [profileData, setProfileData] = useState({
-    name: '',
-    specialization: '',
-    experience: '',
-    fees: '',
-    hospital: '',
-    bio: ''
-  });
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [profileSuccess, setProfileSuccess] = useState(false);
-  const [profileError, setProfileError] = useState('');
-
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
   useEffect(() => {
-    // 1. Role verification check
+    // Role verification check
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user'));
 
@@ -64,18 +44,7 @@ function DoctorDashboard() {
         }
         
         setDoctorProfile(profileData);
-        setAvailability(profileData.availability || []);
         
-        // Populate profile edit form initial values
-        setProfileData({
-          name: profileData.name || '',
-          specialization: profileData.specialization || '',
-          experience: profileData.experience || '',
-          fees: profileData.fees || '',
-          hospital: profileData.hospital || '',
-          bio: profileData.bio || ''
-        });
-
         // Fetch all appointments for the doctor
         const appRes = await fetch('/api/appointments', {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -127,92 +96,6 @@ function DoctorDashboard() {
     }
   };
 
-  // Toggle availability days checkboxes
-  const handleCheckboxChange = (day) => {
-    if (availability.includes(day)) {
-      setAvailability(availability.filter((d) => d !== day));
-    } else {
-      setAvailability([...availability, day]);
-    }
-  };
-
-  // Submit availability updates to server
-  const saveAvailability = async (e) => {
-    e.preventDefault();
-    setSaveLoading(true);
-    setSaveSuccess(false);
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/doctors/profile/availability', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ availability })
-      });
-
-      const updatedProfile = await response.json();
-
-      if (!response.ok) {
-        throw new Error(updatedProfile.message || 'Failed to update availability schedule');
-      }
-
-      setDoctorProfile(updatedProfile);
-      setSaveSuccess(true);
-
-      // Auto-hide success badge after 3 seconds
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err) {
-      alert(`Error saving availability schedule: ${err.message}`);
-    } finally {
-      setSaveLoading(false);
-    }
-  };
-
-  // Submit profile details updates to server
-  const handleProfileSubmit = async (e) => {
-    e.preventDefault();
-    setProfileLoading(true);
-    setProfileSuccess(false);
-    setProfileError('');
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/doctors/profile/me', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(profileData)
-      });
-
-      const updatedProfile = await response.json();
-
-      if (!response.ok) {
-        throw new Error(updatedProfile.message || 'Failed to update profile details');
-      }
-
-      setDoctorProfile(updatedProfile);
-      setProfileSuccess(true);
-      
-      // Update local storage user name too if it was changed
-      const localUser = JSON.parse(localStorage.getItem('user'));
-      if (localUser) {
-        localUser.name = updatedProfile.name;
-        localStorage.setItem('user', JSON.stringify(localUser));
-      }
-
-      setTimeout(() => setProfileSuccess(false), 3000);
-    } catch (err) {
-      setProfileError(err.message);
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
   // Group appointments into Today, Upcoming, and Past
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -247,7 +130,7 @@ function DoctorDashboard() {
       <div style={{ marginTop: '2rem' }}>
         <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Doctor Dashboard</h2>
         <p style={{ color: 'var(--text-secondary)' }}>
-          Welcome, <strong>{doctorProfile?.name && (doctorProfile.name.toLowerCase().startsWith('dr.') ? doctorProfile.name : `Dr. ${doctorProfile.name}`)}</strong>. Manage your scheduled patients and weekly work schedule.
+          Welcome, <strong>{doctorProfile?.name && (doctorProfile.name.toLowerCase().startsWith('dr.') ? doctorProfile.name : `Dr. ${doctorProfile.name}`)}</strong>. Manage your scheduled patients and check appointments.
         </p>
 
         {error && (
@@ -256,8 +139,8 @@ function DoctorDashboard() {
           </div>
         )}
 
-        {/* Dashboard split content */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: '2rem', marginTop: '2rem' }}>
+        {/* Dashboard content */}
+        <div style={{ marginTop: '2rem', maxWidth: '800px', margin: '2rem auto' }}>
           
           {/* ============ APPOINTMENTS PORTAL ============ */}
           <div>
@@ -449,156 +332,6 @@ function DoctorDashboard() {
                 ))}
               </div>
             )}
-          </div>
-
-          {/* ============ MANAGE AVAILABILITY & PROFILE SECTION ============ */}
-          <div>
-            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-              Manage Availability
-            </h3>
-            
-            <div className="card" style={{ marginTop: '1rem', padding: '1.5rem', marginBottom: '2rem' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                Select the days of the week you are available for consultation bookings:
-              </p>
-
-              {saveSuccess && (
-                <div className="status-badge success" style={{ width: '100%', textAlign: 'center', marginBottom: '1rem', padding: '0.4rem' }}>
-                  Availability schedule saved successfully!
-                </div>
-              )}
-
-              <form onSubmit={saveAvailability}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {daysOfWeek.map((day) => (
-                    <label key={day} className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={availability.includes(day)}
-                        onChange={() => handleCheckboxChange(day)}
-                      />
-                      <span>{day}</span>
-                    </label>
-                  ))}
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn"
-                  disabled={saveLoading}
-                  style={{ width: '100%', marginTop: '1.5rem', padding: '0.75rem' }}
-                >
-                  {saveLoading ? 'Saving...' : 'Save Availability Days'}
-                </button>
-              </form>
-            </div>
-
-            {/* EDIT PROFILE DETAILS */}
-            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-              Edit Profile Details
-            </h3>
-
-            <div className="card" style={{ marginTop: '1rem', padding: '1.5rem' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                Configure your public doctor specialty, clinic, and description:
-              </p>
-
-              {profileSuccess && (
-                <div className="status-badge success" style={{ width: '100%', textAlign: 'center', marginBottom: '1rem', padding: '0.4rem' }}>
-                  Profile details updated successfully!
-                </div>
-              )}
-              {profileError && (
-                <div className="status-badge danger" style={{ width: '100%', textAlign: 'center', marginBottom: '1rem', padding: '0.4rem' }}>
-                  {profileError}
-                </div>
-              )}
-
-              <form onSubmit={handleProfileSubmit}>
-                {/* Doctor Name */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Full Name</label>
-                  <input
-                    type="text"
-                    value={profileData.name}
-                    onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                    required
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)', fontSize: '0.95rem' }}
-                  />
-                </div>
-
-                {/* Specialization */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Specialization</label>
-                  <input
-                    type="text"
-                    value={profileData.specialization}
-                    onChange={(e) => setProfileData({ ...profileData, specialization: e.target.value })}
-                    required
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)', fontSize: '0.95rem' }}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                  {/* Experience */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Experience (years)</label>
-                    <input
-                      type="number"
-                      value={profileData.experience}
-                      onChange={(e) => setProfileData({ ...profileData, experience: e.target.value })}
-                      required
-                      min="0"
-                      style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)', fontSize: '0.95rem' }}
-                    />
-                  </div>
-                  {/* Fees */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Fees ($)</label>
-                    <input
-                      type="number"
-                      value={profileData.fees}
-                      onChange={(e) => setProfileData({ ...profileData, fees: e.target.value })}
-                      required
-                      min="0"
-                      style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)', fontSize: '0.95rem' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Hospital / Clinic */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Affiliated Clinic/Hospital</label>
-                  <input
-                    type="text"
-                    value={profileData.hospital}
-                    onChange={(e) => setProfileData({ ...profileData, hospital: e.target.value })}
-                    required
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)', fontSize: '0.95rem' }}
-                  />
-                </div>
-
-                {/* Bio */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Bio Details</label>
-                  <textarea
-                    value={profileData.bio}
-                    onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-                    rows="3"
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)', fontSize: '0.95rem', resize: 'vertical' }}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn"
-                  disabled={profileLoading}
-                  style={{ width: '100%', padding: '0.75rem' }}
-                >
-                  {profileLoading ? 'Saving Profile...' : 'Save Profile Details'}
-                </button>
-              </form>
-            </div>
           </div>
 
         </div>

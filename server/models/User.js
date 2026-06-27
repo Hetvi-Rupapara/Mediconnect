@@ -23,6 +23,15 @@ const UserSchema = new mongoose.Schema({
     enum: ['patient', 'doctor'], // Restrict roles to patient or doctor for Version 1
     default: 'patient'
   },
+  phone: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  age: {
+    type: Number,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now // Automatically populate the current timestamp
