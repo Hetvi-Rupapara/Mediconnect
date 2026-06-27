@@ -22,12 +22,14 @@ const testRouter = require('./routes/test');
 const authRouter = require('./routes/auth');
 const doctorsRouter = require('./routes/doctors');
 const appointmentsRouter = require('./routes/appointments');
+const aiRouter = require('./routes/aiRoutes');
 
 // Mount routes
 app.use('/api/test', testRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/doctors', doctorsRouter);
 app.use('/api/appointments', appointmentsRouter);
+app.use('/api/ai', aiRouter);
 
 // Set port from environment variable or default to 5000
 const PORT = process.env.PORT || 5000;
