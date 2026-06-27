@@ -17,6 +17,7 @@
   --success: #10b981;             /* Emerald Green */
   --success-hover: #059669;
   --danger: #ef4444;              /* Red */
+  --danger-color: var(--danger);
   --danger-hover: #dc2626;
   --info: #0ea5e9;                /* Ocean Blue */
   --warning: #f59e0b;             /* Amber Gold */
@@ -170,6 +171,16 @@ header {
   cursor: not-allowed;
   transform: none !important;
   box-shadow: none !important;
+}
+
+.btn-danger {
+  background-color: var(--danger) !important;
+  color: #fff !important;
+}
+
+.btn-danger:hover {
+  background-color: var(--danger-hover) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
 /* Premium Card Panels */

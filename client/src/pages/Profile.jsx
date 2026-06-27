@@ -879,10 +879,9 @@ function Profile() {
 
             <button 
               onClick={() => setShowLogoutModal(true)} 
-              className="btn" 
+              className="btn btn-danger" 
               style={{ 
                 width: '100%', 
-                backgroundColor: 'var(--danger-color)', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
@@ -950,8 +949,8 @@ function Profile() {
               </button>
               <button 
                 onClick={handleLogout} 
-                className="btn" 
-                style={{ flex: 1, backgroundColor: 'var(--danger-color)' }}
+                className="btn btn-danger" 
+                style={{ flex: 1 }}
               >
                 Logout
               </button>
