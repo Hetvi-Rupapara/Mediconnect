@@ -46,13 +46,6 @@ function App() {
                 <img 
                   src="/logo.jpg" 
                   alt="MediConnect Logo" 
-                  style={{ 
-                    width: '100%', 
-                    height: 'auto', 
-                    transform: 'scale(1.35)', 
-                    transformOrigin: 'top center',
-                    marginTop: '2px'
-                  }} 
                 />
               </div>
               <span className="logo-text">MediConnect</span>

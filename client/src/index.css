@@ -91,7 +91,7 @@ header {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  padding: 0.8rem 0; /* Compact padding to match 70-76px navbar height */
+  padding: 0.75rem 0; /* Compact padding to match 68-72px navbar height (70px target) */
   box-shadow: var(--shadow-sm);
 }
 
@@ -108,7 +108,7 @@ header {
 .logo-brand {
   display: flex;
   align-items: center;
-  gap: 12px; /* 10-14px spacing */
+  gap: 12px; /* 10-12px spacing */
   text-decoration: none;
   transition: var(--transition-smooth);
 }
@@ -118,10 +118,11 @@ header {
   opacity: 0.95;
 }
 
-/* Responsive Logo Emblem Container (No border, sharp aspect ratio) */
+/* Responsive Logo Emblem Container (No border, sharp aspect ratio, relative position) */
 .logo-img-container {
-  width: 44px;
-  height: 44px;
+  position: relative;
+  width: 46px; /* 44-48px height (desktop) */
+  height: 46px;
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -130,24 +131,33 @@ header {
   border: none;
 }
 
+/* Percentage-based emblem cropping to display only the stethoscope loop + cross, hiding bottom text label */
+.logo-img-container img {
+  position: absolute;
+  width: 125%; /* Zoom factor (25% increase) to mask bottom text */
+  height: auto;
+  left: -12.5%; /* Centers expanded width: (100% - 125%) / 2 */
+  top: -4%; /* Pushes text label down out of the container bounds */
+}
+
 @media (max-width: 1024px) { /* Tablet */
   .logo-img-container {
-    width: 38px;
+    width: 38px; /* 36-40px (tablet) */
     height: 38px;
   }
 }
 
 @media (max-width: 768px) { /* Mobile */
   .logo-img-container {
-    width: 34px;
+    width: 34px; /* 32-36px (mobile) */
     height: 34px;
   }
 }
 
 /* Balanced Brand Text */
 .logo-text {
-  font-size: 30px; /* 30-34px */
-  font-weight: 600; /* 600-700 */
+  font-size: 28px; /* 28-30px (desktop) */
+  font-weight: 600; /* 600 or 700 */
   color: var(--text-main);
   letter-spacing: -0.04em; /* Slightly tighter spacing */
   line-height: 1;
@@ -157,13 +167,13 @@ header {
 
 @media (max-width: 1024px) { /* Tablet */
   .logo-text {
-    font-size: 26px;
+    font-size: 24px;
   }
 }
 
 @media (max-width: 768px) { /* Mobile */
   .logo-text {
-    font-size: 22px;
+    font-size: 20px;
   }
 }
 
