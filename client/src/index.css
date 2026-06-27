@@ -4,11 +4,13 @@
 /* Global Design Tokens & Variables */
 :root {
   --primary: #0d9488;             /* Teal */
+  --primary-color: var(--primary);
   --primary-hover: #0f766e;       /* Dark Teal */
   --primary-light: #f0fdfa;       /* Soft Mint tint */
   --bg-color: #f8fafc;            /* Clean Slate Gray base */
   --card-bg: rgba(255, 255, 255, 0.85); /* Semi-transparent white for glassmorphism */
   --border: #e2e8f0;              /* Soft gray border */
+  --border-color: var(--border);
   --text-main: #0f172a;           /* Dark Slate for primary text */
   --text-secondary: #475569;      /* Medium Slate for secondary labels */
   --text-muted: #64748b;          /* Light Slate for helper text */
