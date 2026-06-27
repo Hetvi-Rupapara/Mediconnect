@@ -44,7 +44,7 @@ function App() {
             <Link to="/" className="logo-brand">
               <div className="logo-img-container">
                 <img 
-                  src="/logo.jpg" 
+                  src="/logo.png" 
                   alt="MediConnect Logo" 
                 />
               </div>

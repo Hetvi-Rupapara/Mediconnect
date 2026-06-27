@@ -118,26 +118,21 @@ header {
   opacity: 0.95;
 }
 
-/* Responsive Logo Emblem Container (No border, sharp aspect ratio, relative position) */
+/* Responsive Logo Emblem Container (No border, sharp aspect ratio) */
 .logo-img-container {
-  position: relative;
   width: 46px; /* 44-48px height (desktop) */
   height: 46px;
-  overflow: hidden;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  background-color: #fff;
+  align-items: center;
+  background-color: transparent;
   border: none;
 }
 
-/* Percentage-based emblem cropping to display only the stethoscope loop + cross, hiding bottom text label */
 .logo-img-container img {
-  position: absolute;
-  width: 125%; /* Zoom factor (25% increase) to mask bottom text */
-  height: auto;
-  left: -12.5%; /* Centers expanded width: (100% - 125%) / 2 */
-  top: -4%; /* Pushes text label down out of the container bounds */
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Sharp aspect ratio fit */
 }
 
 @media (max-width: 1024px) { /* Tablet */
