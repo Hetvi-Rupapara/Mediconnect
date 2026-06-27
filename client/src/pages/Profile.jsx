@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserIcon, EmailIcon, StethoscopeIcon, CalendarIcon, BriefcaseIcon, DollarIcon, LocationIcon, ShieldIcon, LogoutIcon } from '../components/Icons';
+import { UserIcon, EmailIcon, StethoscopeIcon, CalendarIcon, BriefcaseIcon, DollarIcon, LocationIcon, ShieldIcon } from '../components/Icons';
 
 /**
  * Profile Component
- * Unified Profile and Account Settings manager.
- * Adapts dynamically to render the correct profile forms and configuration options
- * depending on whether the authenticated user is a Patient or a Doctor.
+ * Redesigned Account Profile settings page.
+ * Uses a professional two-column layout on desktop, initials-based avatars,
+ * clean cards, and a custom logout confirmation modal.
  */
 function Profile() {
   const navigate = useNavigate();
 
-  // Common authentication states
+  // Authentication states
   const [userRole, setUserRole] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Patient states
+  // Patient profile states
   const [patientProfile, setPatientProfile] = useState(null);
   const [patientEditMode, setPatientEditMode] = useState(false);
   const [patientName, setPatientName] = useState('');
@@ -27,7 +27,7 @@ function Profile() {
   const [patientSuccess, setPatientSuccess] = useState('');
   const [patientError, setPatientError] = useState('');
 
-  // Doctor states
+  // Doctor profile states
   const [doctorProfile, setDoctorProfile] = useState(null);
   const [doctorEditMode, setDoctorEditMode] = useState(false);
   const [doctorName, setDoctorName] = useState('');
@@ -40,19 +40,22 @@ function Profile() {
   const [doctorSuccess, setDoctorSuccess] = useState('');
   const [doctorError, setDoctorError] = useState('');
 
-  // Availability states
+  // Doctor Availability states
   const [availability, setAvailability] = useState([]);
   const [availSaveLoading, setAvailSaveLoading] = useState(false);
   const [availSuccess, setAvailSuccess] = useState('');
   const [availError, setAvailError] = useState('');
 
-  // Change Password states
+  // Password change states
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
+
+  // UI state for custom logout modal
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -65,7 +68,7 @@ function Profile() {
 
     const fetchInitialData = async () => {
       try {
-        // 1. Fetch user core profile
+        // Fetch core user data
         const userRes = await fetch('/api/auth/profile', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -80,7 +83,7 @@ function Profile() {
         setUserRole(userData.role);
 
         if (userData.role === 'doctor') {
-          // 2. Fetch doctor specific details
+          // Fetch doctor details
           const docRes = await fetch('/api/doctors/profile/me', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
@@ -99,7 +102,7 @@ function Profile() {
           setDoctorBio(docData.bio || '');
           setAvailability(docData.availability || []);
         } else {
-          // Patient core profile
+          // Patient profile
           setPatientProfile(userData);
           setPatientName(userData.name || '');
           setPatientEmail(userData.email || '');
@@ -117,14 +120,23 @@ function Profile() {
     fetchInitialData();
   }, [navigate]);
 
-  // Handle Logout
+  // Execute actual logout
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = '/';
   };
 
-  // Submit Patient profile updates
+  // Helper function to extract name initials
+  const getInitials = (fullName) => {
+    if (!fullName) return 'U';
+    const cleanName = fullName.trim();
+    const parts = cleanName.split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 1).toUpperCase();
+    return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
+  };
+
+  // Save Patient edits
   const handlePatientSubmit = async (e) => {
     e.preventDefault();
     setPatientError('');
@@ -169,7 +181,7 @@ function Profile() {
         role: data.role
       }));
 
-      setPatientSuccess('Profile updated successfully!');
+      setPatientSuccess('Profile details updated successfully!');
       setPatientEditMode(false);
       setTimeout(() => setPatientSuccess(''), 3000);
     } catch (err) {
@@ -179,7 +191,7 @@ function Profile() {
     }
   };
 
-  // Submit Doctor profile updates
+  // Save Doctor edits
   const handleDoctorSubmit = async (e) => {
     e.preventDefault();
     setDoctorError('');
@@ -219,7 +231,7 @@ function Profile() {
       const userObj = JSON.parse(localStorage.getItem('user'));
       localStorage.setItem('user', JSON.stringify({ ...userObj, name: data.name }));
 
-      setDoctorSuccess('Doctor information updated successfully!');
+      setDoctorSuccess('Doctor details updated successfully!');
       setDoctorEditMode(false);
       setTimeout(() => setDoctorSuccess(''), 3000);
     } catch (err) {
@@ -229,7 +241,7 @@ function Profile() {
     }
   };
 
-  // Toggle Availability weekday array
+  // Toggle Doctor weekday availability
   const handleAvailabilityToggle = (day) => {
     if (availability.includes(day)) {
       setAvailability(availability.filter(d => d !== day));
@@ -238,7 +250,7 @@ function Profile() {
     }
   };
 
-  // Save Availability array
+  // Save Doctor Availability array
   const handleAvailabilitySubmit = async (e) => {
     e.preventDefault();
     setAvailError('');
@@ -271,22 +283,22 @@ function Profile() {
     }
   };
 
-  // Submit Password changes
+  // Submit Password update
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setPasswordError('');
     setPasswordSuccess('');
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setPasswordError('All password fields are required');
+      setPasswordError('All fields are required.');
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError('New password must be at least 6 characters long');
+      setPasswordError('New password must be at least 6 characters.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('New passwords do not match');
+      setPasswordError('Passwords do not match.');
       return;
     }
 
@@ -307,7 +319,7 @@ function Profile() {
         throw new Error(data.message || 'Failed to change password');
       }
 
-      setPasswordSuccess('Password changed successfully!');
+      setPasswordSuccess('Password updated successfully!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -339,27 +351,103 @@ function Profile() {
     );
   }
 
+  // Display fields conditionally with fallback symbols
+  const renderField = (value, fallbackText = '—') => {
+    if (value === undefined || value === null || String(value).trim() === '') {
+      return <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>{fallbackText}</span>;
+    }
+    return <span>{value}</span>;
+  };
+
+  const displayName = userRole === 'doctor' ? doctorProfile?.name : patientProfile?.name;
+  const displayEmail = JSON.parse(localStorage.getItem('user'))?.email;
+  const roleLabel = userRole === 'doctor' ? 'Doctor' : 'Patient';
+
   return (
-    <div className="container">
-      <div style={{ marginTop: '2rem' }}>
-        <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Account Profile</h2>
-        <p style={{ color: 'var(--text-secondary)' }}>
-          Manage your personal information, configure options, and update credentials.
-        </p>
+    <div className="container" style={{ paddingBottom: '3rem' }}>
+      {/* Page Title */}
+      <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+        <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Profile</h2>
       </div>
 
-      {userRole === 'doctor' ? (
-        // ==========================================
-        // DOCTOR PROFILE VIEW
-        // ==========================================
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', marginTop: '2rem' }}>
-          {/* LEFT: DOCTOR GENERAL INFORMATION & EDIT */}
-          <div>
-            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--primary-color)' }}>
-              Doctor Information
-            </h3>
+      <div className="profile-layout-grid">
+        {/* ==========================================
+            LEFT COLUMN: PROFILE SUMMARY CARD
+           ========================================== */}
+        <div>
+          <div className="card" style={{ padding: '2rem', textAlign: 'center', marginBottom: '2rem', border: '1px solid var(--border-color)' }}>
+            {/* Initials Avatar */}
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--primary-light)',
+              color: 'var(--primary-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+              fontWeight: '700',
+              margin: '0 auto 1.25rem auto',
+              border: '2px solid var(--border-color)',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              {getInitials(displayName)}
+            </div>
 
-            <div className="card" style={{ marginTop: '1rem', padding: '2rem' }}>
+            <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem', fontSize: '1.25rem' }}>{displayName}</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>{displayEmail}</p>
+            
+            <span className="status-badge" style={{ 
+              display: 'inline-block',
+              textTransform: 'uppercase', 
+              fontSize: '0.75rem', 
+              fontWeight: '700', 
+              letterSpacing: '0.05em', 
+              backgroundColor: 'var(--primary-light)', 
+              color: 'var(--primary-color)',
+              padding: '0.25rem 0.75rem',
+              borderRadius: '20px',
+              marginBottom: '2rem'
+            }}>
+              {roleLabel}
+            </span>
+
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+              {userRole === 'doctor' ? (
+                <button 
+                  onClick={() => setDoctorEditMode(!doctorEditMode)} 
+                  className="btn" 
+                  style={{ width: '100%', backgroundColor: doctorEditMode ? 'var(--text-secondary)' : 'var(--primary-color)' }}
+                >
+                  {doctorEditMode ? 'Cancel Edit' : 'Edit Profile'}
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setPatientEditMode(!patientEditMode)} 
+                  className="btn" 
+                  style={{ width: '100%', backgroundColor: patientEditMode ? 'var(--text-secondary)' : 'var(--primary-color)' }}
+                >
+                  {patientEditMode ? 'Cancel Edit' : 'Edit Profile'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ==========================================
+            RIGHT COLUMN: FORMS & ACTIONS
+           ========================================== */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          
+          {/* ============ CARD 1: GENERAL INFORMATION / EDIT ============ */}
+          {userRole === 'doctor' ? (
+            /* DOCTOR INFORMATION CARD */
+            <div className="card" style={{ padding: '2rem', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
+                Doctor Information
+              </h3>
+
               {doctorSuccess && (
                 <div className="status-badge success" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.5rem' }}>
                   {doctorSuccess}
@@ -372,101 +460,65 @@ function Profile() {
               )}
 
               {!doctorEditMode ? (
-                // View Mode
-                <div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <UserIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Full Name</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{doctorProfile?.name}</strong>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <EmailIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Email Address</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>
-                          {JSON.parse(localStorage.getItem('user'))?.email}
-                        </strong>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <StethoscopeIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Specialization</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{doctorProfile?.specialization}</strong>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <BriefcaseIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Years of Experience</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{doctorProfile?.experience} years</strong>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <DollarIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Consultation Fee</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>${doctorProfile?.fees} per session</strong>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <LocationIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Hospital Affiliation</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{doctorProfile?.hospital}</strong>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                      <ShieldIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem', marginTop: '0.2rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Biography Details</span>
-                        <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-primary)', lineHeight: '1.5', fontSize: '0.95rem' }}>
-                          {doctorProfile?.bio || 'No bio provided yet.'}
-                        </p>
-                      </div>
-                    </div>
+                /* Doctor View Mode */
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem 2rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Full Name</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{doctorProfile?.name}</strong>
                   </div>
-
-                  <div style={{ marginTop: '2rem' }}>
-                    <button onClick={() => setDoctorEditMode(true)} className="btn" style={{ width: '100%' }}>
-                      Edit Profile
-                    </button>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Email Address</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{displayEmail}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Specialization</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{doctorProfile?.specialization}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Years of Experience</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{doctorProfile?.experience} years</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Consultation Fee</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>${doctorProfile?.fees}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Affiliated Clinic/Hospital</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{doctorProfile?.hospital}</strong>
+                  </div>
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Biography Details</span>
+                    <p style={{ margin: 0, color: 'var(--text-primary)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                      {doctorProfile?.bio || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>—</span>}
+                    </p>
                   </div>
                 </div>
               ) : (
-                // Edit Mode
+                /* Doctor Edit Form */
                 <form onSubmit={handleDoctorSubmit}>
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Full Name</label>
-                    <input
-                      type="text"
-                      className="search-input"
-                      value={doctorName}
-                      onChange={(e) => setDoctorName(e.target.value)}
-                      required
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Specialization</label>
-                    <input
-                      type="text"
-                      className="search-input"
-                      value={doctorSpecialization}
-                      onChange={(e) => setDoctorSpecialization(e.target.value)}
-                      required
-                      style={{ width: '100%' }}
-                    />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Full Name</label>
+                      <input
+                        type="text"
+                        className="search-input"
+                        value={doctorName}
+                        onChange={(e) => setDoctorName(e.target.value)}
+                        required
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Specialization</label>
+                      <input
+                        type="text"
+                        className="search-input"
+                        value={doctorSpecialization}
+                        onChange={(e) => setDoctorSpecialization(e.target.value)}
+                        required
+                        style={{ width: '100%' }}
+                      />
+                    </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
@@ -483,7 +535,7 @@ function Profile() {
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Fees ($)</label>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Consultation Fee ($)</label>
                       <input
                         type="number"
                         className="search-input"
@@ -497,7 +549,7 @@ function Profile() {
                   </div>
 
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Hospital Affiliation</label>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Clinic/Hospital Affiliation</label>
                     <input
                       type="text"
                       className="search-input"
@@ -509,7 +561,7 @@ function Profile() {
                   </div>
 
                   <div style={{ marginBottom: '1.5rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Bio Details</label>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Biography Details</label>
                     <textarea
                       className="search-input"
                       value={doctorBio}
@@ -530,16 +582,126 @@ function Profile() {
                 </form>
               )}
             </div>
-          </div>
+          ) : (
+            /* PATIENT PERSONAL INFORMATION CARD */
+            <div className="card" style={{ padding: '2rem', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
+                Personal Information
+              </h3>
 
-          {/* RIGHT: MANAGE AVAILABILITY & ACCOUNT (PASSWORD / LOGOUT) */}
-          <div>
-            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-              Manage Availability
-            </h3>
-            
-            <div className="card" style={{ marginTop: '1rem', padding: '1.5rem', marginBottom: '2rem' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+              {patientSuccess && (
+                <div className="status-badge success" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.5rem' }}>
+                  {patientSuccess}
+                </div>
+              )}
+              {patientError && (
+                <div className="status-badge danger" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.5rem' }}>
+                  {patientError}
+                </div>
+              )}
+
+              {!patientEditMode ? (
+                /* Patient View Mode */
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem 2rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Name</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{patientProfile?.name}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Email</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>{patientProfile?.email}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Phone</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>
+                      {renderField(patientProfile?.phone, 'Add Phone Number (Edit Profile)')}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Age</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>
+                      {renderField(patientProfile?.age ? `${patientProfile.age} years old` : null)}
+                    </strong>
+                  </div>
+                </div>
+              ) : (
+                /* Patient Edit Form */
+                <form onSubmit={handlePatientSubmit}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Name</label>
+                      <input
+                        type="text"
+                        className="search-input"
+                        value={patientName}
+                        onChange={(e) => setPatientName(e.target.value)}
+                        required
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Email</label>
+                      <input
+                        type="email"
+                        className="search-input"
+                        value={patientEmail}
+                        onChange={(e) => setPatientEmail(e.target.value)}
+                        required
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Phone</label>
+                      <input
+                        type="text"
+                        className="search-input"
+                        value={patientPhone}
+                        onChange={(e) => setPatientPhone(e.target.value)}
+                        placeholder="Enter phone number"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Age</label>
+                      <input
+                        type="number"
+                        className="search-input"
+                        value={patientAge}
+                        onChange={(e) => setPatientAge(e.target.value)}
+                        placeholder="Enter age"
+                        min="0"
+                        max="120"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button type="submit" className="btn" disabled={patientSaveLoading} style={{ flex: 1 }}>
+                      {patientSaveLoading ? 'Saving...' : 'Save Profile'}
+                    </button>
+                    <button type="button" onClick={() => setPatientEditMode(false)} className="btn" style={{ flex: 1, backgroundColor: 'var(--text-secondary)' }}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* ============ DOCTOR AVAILABILITY SCHEDULE ============ */}
+          {userRole === 'doctor' && (
+            <div className="card" style={{ padding: '2rem', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
+                Manage Availability
+              </h3>
+
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
                 Select the weekdays you are available to accept patient consultations:
               </p>
 
@@ -555,16 +717,16 @@ function Profile() {
               )}
 
               <form onSubmit={handleAvailabilitySubmit}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.75rem' }}>
                   {daysOfWeek.map((day) => (
-                    <label key={day} className="checkbox-item" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                    <label key={day} className="checkbox-item" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }}>
                       <input
                         type="checkbox"
                         checked={availability.includes(day)}
                         onChange={() => handleAvailabilityToggle(day)}
                         style={{ marginRight: '0.5rem', cursor: 'pointer' }}
                       />
-                      <span>{day}</span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-secondary)' }}>{day}</span>
                     </label>
                   ))}
                 </div>
@@ -579,311 +741,165 @@ function Profile() {
                 </button>
               </form>
             </div>
+          )}
 
-            {/* UNIFIED ACCOUNT SECTION */}
-            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-              Account
+          {/* ============ CARD 2: SECURITY (CHANGE PASSWORD) ============ */}
+          <div className="card" style={{ padding: '2rem', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '0.25rem' }}>
+              Security
             </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              Update your password to keep your account secure.
+            </p>
 
-            <div className="card" style={{ marginTop: '1rem', padding: '1.5rem' }}>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '600', display: 'block', marginBottom: '1rem' }}>
-                Change Password
-              </span>
-
-              {passwordSuccess && (
-                <div className="status-badge success" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.4rem' }}>
-                  {passwordSuccess}
-                </div>
-              )}
-              {passwordError && (
-                <div className="status-badge danger" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.4rem' }}>
-                  {passwordError}
-                </div>
-              )}
-
-              <form onSubmit={handlePasswordSubmit}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Current Password</label>
-                  <input
-                    type="password"
-                    className="search-input"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    style={{ width: '100%', padding: '0.4rem' }}
-                    required
-                  />
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>New Password</label>
-                  <input
-                    type="password"
-                    className="search-input"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    style={{ width: '100%', padding: '0.4rem' }}
-                    required
-                  />
-                </div>
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Confirm New Password</label>
-                  <input
-                    type="password"
-                    className="search-input"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    style={{ width: '100%', padding: '0.4rem' }}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn"
-                  disabled={passwordLoading}
-                  style={{ width: '100%', backgroundColor: 'var(--text-secondary)', marginBottom: '1.5rem' }}
-                >
-                  {passwordLoading ? 'Updating Password...' : 'Change Password'}
-                </button>
-              </form>
-
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '0.5rem' }}>
-                <button 
-                  onClick={handleLogout} 
-                  className="btn" 
-                  style={{ 
-                    width: '100%', 
-                    backgroundColor: 'var(--danger-color)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}
-                >
-                  <LogoutIcon size={18} style={{ marginRight: '0.4rem' }} />
-                  Logout
-                </button>
+            {passwordSuccess && (
+              <div className="status-badge success" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.4rem' }}>
+                {passwordSuccess}
               </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        // ==========================================
-        // PATIENT PROFILE VIEW
-        // ==========================================
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', marginTop: '2rem' }}>
-          {/* LEFT: MY PROFILE INFO */}
-          <div>
-            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--primary-color)' }}>
-              My Profile
-            </h3>
+            )}
+            {passwordError && (
+              <div className="status-badge danger" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.4rem' }}>
+                {passwordError}
+              </div>
+            )}
 
-            <div className="card" style={{ marginTop: '1rem', padding: '2rem' }}>
-              {patientSuccess && (
-                <div className="status-badge success" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.5rem' }}>
-                  {patientSuccess}
-                </div>
-              )}
-              {patientError && (
-                <div className="status-badge danger" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.5rem' }}>
-                  {patientError}
-                </div>
-              )}
-
-              {!patientEditMode ? (
-                // View Mode
+            <form onSubmit={handlePasswordSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <UserIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Name</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{patientProfile?.name}</strong>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <EmailIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Email</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{patientProfile?.email}</strong>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <CalendarIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Phone</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>
-                          {patientProfile?.phone || 'Not provided'}
-                        </strong>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <BriefcaseIcon size={20} color="var(--text-secondary)" style={{ marginRight: '0.75rem' }} />
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Age</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>
-                          {patientProfile?.age ? `${patientProfile.age} years old` : 'Not provided'}
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ marginTop: '2.5rem' }}>
-                    <button onClick={() => setPatientEditMode(true)} className="btn" style={{ width: '100%' }}>
-                      Edit Profile
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                // Edit Mode
-                <form onSubmit={handlePatientSubmit}>
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Name</label>
-                    <input
-                      type="text"
-                      className="search-input"
-                      value={patientName}
-                      onChange={(e) => setPatientName(e.target.value)}
-                      required
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Email</label>
-                    <input
-                      type="email"
-                      className="search-input"
-                      value={patientEmail}
-                      onChange={(e) => setPatientEmail(e.target.value)}
-                      required
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Phone</label>
-                    <input
-                      type="text"
-                      className="search-input"
-                      value={patientPhone}
-                      onChange={(e) => setPatientPhone(e.target.value)}
-                      placeholder="Enter phone number"
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Age</label>
-                    <input
-                      type="number"
-                      className="search-input"
-                      value={patientAge}
-                      onChange={(e) => setPatientAge(e.target.value)}
-                      placeholder="Enter age"
-                      min="0"
-                      max="120"
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button type="submit" className="btn" disabled={patientSaveLoading} style={{ flex: 1 }}>
-                      {patientSaveLoading ? 'Saving...' : 'Save Profile'}
-                    </button>
-                    <button type="button" onClick={() => setPatientEditMode(false)} className="btn" style={{ flex: 1, backgroundColor: 'var(--text-secondary)' }}>
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </div>
-
-          {/* RIGHT: ACCOUNT SECTION (PASSWORD / LOGOUT) */}
-          <div>
-            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-              Account
-            </h3>
-
-            <div className="card" style={{ marginTop: '1rem', padding: '1.5rem' }}>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '600', display: 'block', marginBottom: '1rem' }}>
-                Change Password
-              </span>
-
-              {passwordSuccess && (
-                <div className="status-badge success" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.4rem' }}>
-                  {passwordSuccess}
-                </div>
-              )}
-              {passwordError && (
-                <div className="status-badge danger" style={{ width: '100%', textAlign: 'center', marginBottom: '1.25rem', padding: '0.4rem' }}>
-                  {passwordError}
-                </div>
-              )}
-
-              <form onSubmit={handlePasswordSubmit}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Current Password</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Current Password</label>
                   <input
                     type="password"
                     className="search-input"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    style={{ width: '100%', padding: '0.4rem' }}
+                    style={{ width: '100%' }}
                     required
                   />
                 </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>New Password</label>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>New Password</label>
                   <input
                     type="password"
                     className="search-input"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    style={{ width: '100%', padding: '0.4rem' }}
+                    style={{ width: '100%' }}
                     required
                   />
                 </div>
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.25rem' }}>Confirm New Password</label>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.25rem' }}>Confirm Password</label>
                   <input
                     type="password"
                     className="search-input"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    style={{ width: '100%', padding: '0.4rem' }}
+                    style={{ width: '100%' }}
                     required
                   />
                 </div>
-
-                <button
-                  type="submit"
-                  className="btn"
-                  disabled={passwordLoading}
-                  style={{ width: '100%', backgroundColor: 'var(--text-secondary)', marginBottom: '1.5rem' }}
-                >
-                  {passwordLoading ? 'Updating Password...' : 'Change Password'}
-                </button>
-              </form>
-
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '0.5rem' }}>
-                <button 
-                  onClick={handleLogout} 
-                  className="btn" 
-                  style={{ 
-                    width: '100%', 
-                    backgroundColor: 'var(--danger-color)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}
-                >
-                  <LogoutIcon size={18} style={{ marginRight: '0.4rem' }} />
-                  Logout
-                </button>
               </div>
+
+              <button
+                type="submit"
+                className="btn"
+                disabled={passwordLoading}
+                style={{ width: '100%', backgroundColor: 'var(--text-secondary)' }}
+              >
+                {passwordLoading ? 'Updating Password...' : 'Update Password'}
+              </button>
+            </form>
+          </div>
+
+          {/* ============ CARD 3: ACCOUNT (LOGOUT) ============ */}
+          <div className="card" style={{ padding: '2rem', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '0.25rem' }}>
+              Account
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              Manage your account actions.
+            </p>
+
+            <button 
+              onClick={() => setShowLogoutModal(true)} 
+              className="btn" 
+              style={{ 
+                width: '100%', 
+                backgroundColor: 'var(--danger-color)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                fontWeight: '700'
+              }}
+            >
+              Logout
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ==========================================
+          LOGOUT CONFIRMATION MODAL
+         ========================================== */}
+      {showLogoutModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div className="card" style={{
+            maxWidth: '400px',
+            width: '90%',
+            padding: '2.5rem 2rem',
+            textAlign: 'center',
+            boxShadow: 'var(--shadow-lg)',
+            border: '1px solid var(--border-color)'
+          }}>
+            <div style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              width: '50px', 
+              height: '50px', 
+              borderRadius: '50%', 
+              backgroundColor: '#fee2e2', 
+              color: 'var(--danger-color)', 
+              marginBottom: '1rem'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+            <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>Confirm Logout</h4>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.95rem', lineHeight: '1.5' }}>
+              Are you sure you want to log out of your account?
+            </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                onClick={() => setShowLogoutModal(false)} 
+                className="btn" 
+                style={{ flex: 1, backgroundColor: 'var(--text-secondary)' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleLogout} 
+                className="btn" 
+                style={{ flex: 1, backgroundColor: 'var(--danger-color)' }}
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
