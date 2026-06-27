@@ -13,55 +13,96 @@ function Home() {
   const user = JSON.parse(localStorage.getItem('user'));
   const isDoctor = user && user.role === 'doctor';
 
-  // Determine dashboard redirect target based on logged-in user role
-  const dashboardLink = isDoctor ? '/doctor/dashboard' : '/dashboard';
+  // Define content depending on user authentication status and role
+  let heroTitle, heroDescription, heroButtons;
+
+  if (!isAuthenticated) {
+    // Visitor Layout
+    heroTitle = (
+      <h1 className="hero-title">
+        Your Health.<br />
+        <span style={{ color: 'var(--primary)' }}>Connected & Simplified.</span>
+      </h1>
+    );
+    heroDescription = "MediConnect connects patients with trusted healthcare professionals. Find specialists, book appointments, and get AI-assisted healthcare guidance—all from one secure platform.";
+    heroButtons = (
+      <>
+        <Link to="/doctors" className="btn" style={{ padding: '0.85rem 2rem' }}>
+          Find Doctors
+        </Link>
+        <Link to="/login" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
+          onMouseOver={(e) => {
+            e.target.style.backgroundColor = 'var(--primary-light)';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.backgroundColor = '#ffffff';
+          }}>
+          Login
+        </Link>
+      </>
+    );
+  } else if (!isDoctor) {
+    // Patient Layout
+    heroTitle = (
+      <h1 className="hero-title">
+        Your Health.<br />
+        <span style={{ color: 'var(--primary)' }}>Connected & Simplified.</span>
+      </h1>
+    );
+    heroDescription = "Welcome back! Manage your healthcare journey with ease. Book appointments, connect with trusted doctors, and receive AI-assisted healthcare guidance—all in one place.";
+    heroButtons = (
+      <>
+        <Link to="/dashboard" className="btn" style={{ padding: '0.85rem 2rem' }}>
+          Go to Dashboard
+        </Link>
+        <Link to="/doctors" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
+          onMouseOver={(e) => {
+            e.target.style.backgroundColor = 'var(--primary-light)';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.backgroundColor = '#ffffff';
+          }}>
+          Find Doctors
+        </Link>
+      </>
+    );
+  } else {
+    // Doctor Layout
+    heroTitle = (
+      <h1 className="hero-title">
+        Welcome Back, Doctor!
+      </h1>
+    );
+    heroDescription = "Manage today's appointments, organize your availability, and provide quality care through your personalized dashboard.";
+    heroButtons = (
+      <>
+        <Link to="/doctor/dashboard" className="btn" style={{ padding: '0.85rem 2rem' }}>
+          Go to Dashboard
+        </Link>
+        <Link to="/doctor/dashboard" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
+          onMouseOver={(e) => {
+            e.target.style.backgroundColor = 'var(--primary-light)';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.backgroundColor = '#ffffff';
+          }}>
+          View Appointments
+        </Link>
+      </>
+    );
+  }
 
   return (
     <div className="container">
       {/* 1. Hero Welcome Banner */}
       <section className="hero-grid">
         <div className="hero-left-content">
-          <h1 className="hero-title">
-            Your Health.<br />
-            <span style={{ color: 'var(--primary)' }}>Connected & Simplified.</span>
-          </h1>
+          {heroTitle}
           <p className="hero-subtitle">
-            MediConnect bridges the gap between patients and quality healthcare. 
-            Discover specialized medical practitioners, book appointments instantly, 
-            and consult our AI health assistant to navigate symptoms—all from one secure portal.
+            {heroDescription}
           </p>
           <div className="hero-btn-group">
-            {isAuthenticated ? (
-              <>
-                <Link to={dashboardLink} className="btn" style={{ padding: '0.85rem 2rem' }}>
-                  Go to Dashboard
-                </Link>
-                <Link to="/doctors" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
-                  onMouseOver={(e) => {
-                    e.target.style.backgroundColor = 'var(--primary-light)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.backgroundColor = '#ffffff';
-                  }}>
-                  Browse Doctors
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/register" className="btn" style={{ padding: '0.85rem 2rem' }}>
-                  Create Free Account
-                </Link>
-                <Link to="/login" className="btn" style={{ background: '#ffffff', color: 'var(--primary)', borderColor: 'var(--primary)', padding: '0.85rem 2rem' }}
-                  onMouseOver={(e) => {
-                    e.target.style.backgroundColor = 'var(--primary-light)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.backgroundColor = '#ffffff';
-                  }}>
-                  Log In
-                </Link>
-              </>
-            )}
+            {heroButtons}
           </div>
         </div>
 
