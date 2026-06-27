@@ -41,8 +41,9 @@ function App() {
         {/* Navigation Bar */}
         <header>
           <div className="header-container">
-            <Link to="/" className="logo">
-              <StethoscopeIcon size={24} style={{ marginRight: '0.4rem' }} /> MediConnect
+            <Link to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+              <img src="/logo.jpg" alt="MediConnect Logo" style={{ height: '36px', width: '36px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-color)' }} />
+              <span style={{ fontWeight: '800', fontSize: '1.25rem', color: 'var(--text-main)' }}>MediConnect</span>
             </Link>
             <nav>
               <ul className="nav-links">
