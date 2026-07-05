@@ -116,20 +116,6 @@ function Doctors() {
                     <span><DollarIcon size={14} style={{ marginRight: '0.25rem' }} /> Consultation: ${doc.fees}</span>
                   </div>
 
-                  {doc.user && doc.user.email && (
-                    <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--primary-color)', background: '#eff6ff', padding: '0.6rem 0.75rem', borderRadius: '4px', border: '1px solid #bfdbfe', display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.25rem' }}>
-                        <ShieldIcon size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} /> 
-                        <span>Login Email:</span>
-                        <strong style={{ wordBreak: 'break-all' }}>{doc.user.email}</strong>
-                      </div>
-                      {doc.user.email.endsWith('@mediconnect.com') && (
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', paddingLeft: '1.25rem' }}>
-                          (Pass: <code>doctorpassword123</code>)
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
 
                 <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
