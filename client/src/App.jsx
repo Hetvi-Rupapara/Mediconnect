@@ -119,10 +119,18 @@ function App() {
                         <EmailIcon size={16} style={{ marginRight: '0.3rem' }} /> Contact Us
                       </Link>
                     </li>
-                    <li>
-                      <Link to="/account" style={{ display: 'flex', alignItems: 'center' }}>
-                        <UserIcon size={16} style={{ marginRight: '0.3rem' }} /> Account
+                    <li className="nav-dropdown-container">
+                      <Link to="/account" className="nav-dropdown-trigger" style={{ display: 'flex', alignItems: 'center' }}>
+                        <UserIcon size={16} style={{ marginRight: '0.3rem' }} /> Account <span style={{ fontSize: '0.65rem', marginLeft: '0.25rem' }}>▼</span>
                       </Link>
+                      <ul className="nav-dropdown-menu">
+                        <li>
+                          <Link to="/login">Login</Link>
+                        </li>
+                        <li>
+                          <Link to="/register">Register</Link>
+                        </li>
+                      </ul>
                     </li>
                   </>
                 )}
