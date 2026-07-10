@@ -24,7 +24,7 @@ const sampleDoctors = [
     fees: 100,
     hospital: 'Skin Care and Laser Clinic',
     bio: 'Dr. Amit Patel is a board-certified Dermatologist focusing on skincare treatments, acne management, and cosmetic dermatology therapies. He is passionate about patient education.',
-    availability: ['Tuesday', 'Thursday']
+    availability: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   },
   {
     name: 'Dr. Emily Watson',
