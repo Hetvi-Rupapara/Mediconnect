@@ -57,47 +57,31 @@ function App() {
                     {isDoctor ? (
                       <>
                         <li>
-                          <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
-                            <HomeIcon size={16} style={{ marginRight: '0.3rem' }} /> Home
-                          </Link>
+                          <Link to="/">Home</Link>
                         </li>
                         <li>
-                          <Link to="/doctor/dashboard" style={{ display: 'flex', alignItems: 'center' }}>
-                            <DashboardIcon size={16} style={{ marginRight: '0.3rem' }} /> Dashboard
-                          </Link>
+                          <Link to="/doctor/dashboard">Dashboard</Link>
                         </li>
                         <li>
-                          <Link to="/profile" style={{ display: 'flex', alignItems: 'center' }}>
-                            <UserIcon size={16} style={{ marginRight: '0.3rem' }} /> Profile
-                          </Link>
+                          <Link to="/profile">Profile</Link>
                         </li>
                       </>
                     ) : (
                       <>
                         <li>
-                          <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
-                            <HomeIcon size={16} style={{ marginRight: '0.3rem' }} /> Home
-                          </Link>
+                          <Link to="/">Home</Link>
                         </li>
                         <li>
-                          <Link to="/doctors" style={{ display: 'flex', alignItems: 'center' }}>
-                            <StethoscopeIcon size={16} style={{ marginRight: '0.3rem' }} /> Find Doctors
-                          </Link>
+                          <Link to="/doctors">Find Doctors</Link>
                         </li>
                         <li>
-                          <Link to="/appointments" style={{ display: 'flex', alignItems: 'center' }}>
-                            <CalendarIcon size={16} style={{ marginRight: '0.3rem' }} /> My Appointments
-                          </Link>
+                          <Link to="/appointments">My Appointments</Link>
                         </li>
                         <li>
-                          <Link to="/ai-assistant" style={{ display: 'flex', alignItems: 'center' }}>
-                            <AIIcon size={16} style={{ marginRight: '0.3rem' }} /> AI Assistant
-                          </Link>
+                          <Link to="/ai-assistant">AI Assistant</Link>
                         </li>
                         <li>
-                          <Link to="/profile" style={{ display: 'flex', alignItems: 'center' }}>
-                            <UserIcon size={16} style={{ marginRight: '0.3rem' }} /> Profile
-                          </Link>
+                          <Link to="/profile">Profile</Link>
                         </li>
                       </>
                     )}
@@ -105,23 +89,17 @@ function App() {
                 ) : (
                   <>
                     <li>
-                      <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
-                        <HomeIcon size={16} style={{ marginRight: '0.3rem' }} /> Home
-                      </Link>
+                      <Link to="/">Home</Link>
                     </li>
                     <li>
-                      <Link to="/doctors" style={{ display: 'flex', alignItems: 'center' }}>
-                        <StethoscopeIcon size={16} style={{ marginRight: '0.3rem' }} /> Find Doctors
-                      </Link>
+                      <Link to="/doctors">Find Doctors</Link>
                     </li>
                     <li>
-                      <Link to="/contact-us" style={{ display: 'flex', alignItems: 'center' }}>
-                        <EmailIcon size={16} style={{ marginRight: '0.3rem' }} /> Contact Us
-                      </Link>
+                      <Link to="/contact-us">Contact Us</Link>
                     </li>
                     <li className="nav-dropdown-container">
-                      <Link to="/account" className="nav-dropdown-trigger" style={{ display: 'flex', alignItems: 'center' }}>
-                        <UserIcon size={16} style={{ marginRight: '0.3rem' }} /> Account <span style={{ fontSize: '0.65rem', marginLeft: '0.25rem' }}>▼</span>
+                      <Link to="/account" className="nav-dropdown-trigger">
+                        Account
                       </Link>
                       <ul className="nav-dropdown-menu">
                         <li>
