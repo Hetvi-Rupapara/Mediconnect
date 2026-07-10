@@ -16,6 +16,8 @@ import ContactUs from './pages/ContactUs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import ProtectedRoute from './components/ProtectedRoute';
+import ConsultationRecord from './pages/ConsultationRecord';
+import HealthRecordDetails from './pages/HealthRecordDetails';
 import { StethoscopeIcon, HomeIcon, UserIcon, CalendarIcon, AIIcon, DashboardIcon, EmailIcon } from './components/Icons';
 
 /**
@@ -173,12 +175,29 @@ function App() {
               } 
             />
 
+            <Route 
+              path="/health-records/:recordId" 
+              element={
+                <ProtectedRoute>
+                  <HealthRecordDetails />
+                </ProtectedRoute>
+              } 
+            />
+
             {/* Doctor routes */}
             <Route 
               path="/doctor/dashboard" 
               element={
                 <ProtectedRoute>
                   <DoctorDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/consultation-record/:appointmentId" 
+              element={
+                <ProtectedRoute>
+                  <ConsultationRecord />
                 </ProtectedRoute>
               } 
             />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ClockIcon, EmailIcon, CalendarIcon } from '../components/Icons';
 
 /**
@@ -199,6 +199,13 @@ function DoctorDashboard() {
 
                         {app.status === 'accepted' && (
                           <>
+                            <Link
+                              to={`/consultation-record/${app._id}`}
+                              className="btn"
+                              style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center' }}
+                            >
+                              Consultation Record
+                            </Link>
                             <button
                               onClick={() => handleStatusChange(app._id, 'completed')}
                               className="btn"
@@ -277,6 +284,13 @@ function DoctorDashboard() {
 
                         {app.status === 'accepted' && (
                           <>
+                            <Link
+                              to={`/consultation-record/${app._id}`}
+                              className="btn"
+                              style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center' }}
+                            >
+                              Consultation Record
+                            </Link>
                             <button
                               onClick={() => handleStatusChange(app._id, 'completed')}
                               className="btn"

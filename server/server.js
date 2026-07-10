@@ -23,6 +23,7 @@ const authRouter = require('./routes/auth');
 const doctorsRouter = require('./routes/doctors');
 const appointmentsRouter = require('./routes/appointments');
 const aiRouter = require('./routes/aiRoutes');
+const healthRecordRouter = require('./routes/healthRecordRoutes');
 
 // Mount routes
 app.use('/api/test', testRouter);
@@ -30,6 +31,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/doctors', doctorsRouter);
 app.use('/api/appointments', appointmentsRouter);
 app.use('/api/ai', aiRouter);
+app.use('/api/health-records', healthRecordRouter);
 
 // Set port from environment variable or default to 5000
 const PORT = process.env.PORT || 5000;
