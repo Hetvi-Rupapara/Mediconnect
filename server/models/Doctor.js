@@ -38,6 +38,14 @@ const DoctorSchema = new mongoose.Schema({
     type: [String],
     default: [] // Array of days, e.g., ['Monday', 'Wednesday', 'Friday']
   },
+  workingDays: {
+    type: [String],
+    default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+  },
+  unavailableDates: {
+    type: [String],
+    default: []
+  },
   createdAt: {
     type: Date,
     default: Date.now

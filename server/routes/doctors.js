@@ -164,4 +164,102 @@ router.put('/profile/me', auth, async (req, res) => {
   }
 });
 
+/**
+ * @route   PUT /api/doctors/profile/working-days
+ * @desc    Save doctor's regular weekly working days
+ * @access  Private (Requires authentication and doctor role)
+ */
+router.put('/profile/working-days', auth, async (req, res) => {
+  if (req.user.role !== 'doctor') {
+    return res.status(403).json({ message: 'Access denied: Doctors only' });
+  }
+
+  const { workingDays } = req.body;
+
+  if (!workingDays || !Array.isArray(workingDays)) {
+    return res.status(400).json({ message: 'Please provide working days as an array' });
+  }
+
+  try {
+    const profile = await Doctor.findOne({ user: req.user.id });
+    if (!profile) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    profile.workingDays = workingDays;
+    profile.availability = workingDays; // Sync for backward compatibility
+    await profile.save();
+
+    res.json(profile);
+  } catch (error) {
+    console.error('Save working days error:', error.message);
+    res.status(500).json({ message: 'Server error saving working days schedule' });
+  }
+});
+
+/**
+ * @route   POST /api/doctors/profile/unavailable-dates
+ * @desc    Add a specific unavailable date
+ * @access  Private (Requires authentication and doctor role)
+ */
+router.post('/profile/unavailable-dates', auth, async (req, res) => {
+  if (req.user.role !== 'doctor') {
+    return res.status(403).json({ message: 'Access denied: Doctors only' });
+  }
+
+  const { date } = req.body;
+
+  if (!date) {
+    return res.status(400).json({ message: 'Please provide an unavailable date' });
+  }
+
+  try {
+    const profile = await Doctor.findOne({ user: req.user.id });
+    if (!profile) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    // Prevent duplicate entries
+    if (!profile.unavailableDates.includes(date)) {
+      profile.unavailableDates.push(date);
+      // Sort dates chronologically for better organization
+      profile.unavailableDates.sort();
+      await profile.save();
+    }
+
+    res.json(profile);
+  } catch (error) {
+    console.error('Add unavailable date error:', error.message);
+    res.status(500).json({ message: 'Server error adding unavailable date' });
+  }
+});
+
+/**
+ * @route   DELETE /api/doctors/profile/unavailable-dates/:date
+ * @desc    Remove a specific unavailable date
+ * @access  Private (Requires authentication and doctor role)
+ */
+router.delete('/profile/unavailable-dates/:date', auth, async (req, res) => {
+  if (req.user.role !== 'doctor') {
+    return res.status(403).json({ message: 'Access denied: Doctors only' });
+  }
+
+  const { date } = req.params;
+
+  try {
+    const profile = await Doctor.findOne({ user: req.user.id });
+    if (!profile) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    profile.unavailableDates = profile.unavailableDates.filter(d => d !== date);
+    await profile.save();
+
+    res.json(profile);
+  } catch (error) {
+    console.error('Remove unavailable date error:', error.message);
+    res.status(500).json({ message: 'Server error removing unavailable date' });
+  }
+});
+
 module.exports = router;

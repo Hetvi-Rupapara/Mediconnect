@@ -15,6 +15,13 @@ function DoctorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Manage Availability states
+  const [workingDays, setWorkingDays] = useState(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']);
+  const [unavailableDates, setUnavailableDates] = useState([]);
+  const [newDate, setNewDate] = useState('');
+  const [availabilitySuccess, setAvailabilitySuccess] = useState('');
+  const [availabilityError, setAvailabilityError] = useState('');
+
   useEffect(() => {
     // Role verification check
     const token = localStorage.getItem('token');
@@ -44,6 +51,8 @@ function DoctorDashboard() {
         }
         
         setDoctorProfile(profileData);
+        setWorkingDays(profileData.workingDays || profileData.availability || []);
+        setUnavailableDates(profileData.unavailableDates || []);
         
         // Fetch all appointments for the doctor
         const appRes = await fetch('/api/appointments', {
@@ -93,6 +102,104 @@ function DoctorDashboard() {
       setAppointments(appointments.map((app) => (app._id === appointmentId ? updatedApp : app)));
     } catch (err) {
       alert(`Error updating status: ${err.message}`);
+    }
+  };
+
+  // Toggle checkbox for regular working days list
+  const handleDayToggle = (day) => {
+    if (workingDays.includes(day)) {
+      setWorkingDays(workingDays.filter(d => d !== day));
+    } else {
+      setWorkingDays([...workingDays, day]);
+    }
+  };
+
+  // Submit/save weekly working days selection to backend
+  const handleAvailabilitySave = async (e) => {
+    e.preventDefault();
+    setAvailabilitySuccess('');
+    setAvailabilityError('');
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('/api/doctors/profile/working-days', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ workingDays })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to save availability days');
+      }
+
+      setDoctorProfile(data);
+      setAvailabilitySuccess('Regular working days updated successfully.');
+      setTimeout(() => setAvailabilitySuccess(''), 3000);
+    } catch (err) {
+      setAvailabilityError(err.message || 'Error updating availability');
+    }
+  };
+
+  // Submit/add custom unavailable date to backend
+  const handleAddUnavailableDate = async (e) => {
+    e.preventDefault();
+    if (!newDate) return;
+    setAvailabilitySuccess('');
+    setAvailabilityError('');
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('/api/doctors/profile/unavailable-dates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ date: newDate })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to add unavailable date');
+      }
+
+      setDoctorProfile(data);
+      setUnavailableDates(data.unavailableDates);
+      setNewDate('');
+      setAvailabilitySuccess('Unavailable date added successfully.');
+      setTimeout(() => setAvailabilitySuccess(''), 3000);
+    } catch (err) {
+      setAvailabilityError(err.message || 'Error adding date');
+    }
+  };
+
+  // Delete custom unavailable date from backend list
+  const handleDeleteUnavailableDate = async (dateStr) => {
+    setAvailabilitySuccess('');
+    setAvailabilityError('');
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`/api/doctors/profile/unavailable-dates/${dateStr}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to remove unavailable date');
+      }
+
+      setDoctorProfile(data);
+      setUnavailableDates(data.unavailableDates);
+      setAvailabilitySuccess('Unavailable date removed successfully.');
+      setTimeout(() => setAvailabilitySuccess(''), 3000);
+    } catch (err) {
+      setAvailabilityError(err.message || 'Error removing date');
     }
   };
 
@@ -209,7 +316,7 @@ function DoctorDashboard() {
                             <button
                               onClick={() => handleStatusChange(app._id, 'completed')}
                               className="btn"
-                              style={{ backgroundColor: 'var(--success-color)', color: '#fff', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                              style={{ backgroundColor: 'var(--success-color)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                             >
                               Complete
                             </button>
@@ -294,7 +401,7 @@ function DoctorDashboard() {
                             <button
                               onClick={() => handleStatusChange(app._id, 'completed')}
                               className="btn"
-                              style={{ backgroundColor: 'var(--success-color)', color: '#fff', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                              style={{ backgroundColor: 'var(--success-color)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                             >
                               Complete
                             </button>
@@ -346,6 +453,122 @@ function DoctorDashboard() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* ============ MANAGE AVAILABILITY PORTAL ============ */}
+          <div style={{ marginTop: '3.5rem' }}>
+            <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--primary-color)', marginBottom: '1.5rem' }}>
+              Manage Availability
+            </h3>
+
+            {availabilitySuccess && (
+              <div className="status-badge success" style={{ padding: '0.8rem', width: '100%', textAlign: 'center', marginBottom: '1.5rem' }}>
+                {availabilitySuccess}
+              </div>
+            )}
+            {availabilityError && (
+              <div className="status-badge danger" style={{ padding: '0.8rem', width: '100%', textAlign: 'center', marginBottom: '1.5rem' }}>
+                {availabilityError}
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+              {/* Card 1: Regular Working Days */}
+              <div className="card" style={{ padding: '2rem', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', boxShadow: 'var(--shadow-sm)' }}>
+                <h4 style={{ color: 'var(--text-primary)', margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: '700' }}>
+                  Regular Working Days
+                </h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+                  Select the weekdays you are usually available to accept consultations:
+                </p>
+
+                <form onSubmit={handleAvailabilitySave}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                      <label key={day} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                        <input
+                          type="checkbox"
+                          checked={workingDays.includes(day)}
+                          onChange={() => handleDayToggle(day)}
+                          style={{ marginRight: '0.6rem', width: '16px', height: '16px', cursor: 'pointer' }}
+                        />
+                        {day}
+                      </label>
+                    ))}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn"
+                    style={{ width: '100%', marginTop: '1.5rem', padding: '0.6rem', fontSize: '0.9rem' }}
+                  >
+                    Save Availability
+                  </button>
+                </form>
+              </div>
+
+              {/* Card 2: Unavailable Dates */}
+              <div className="card" style={{ padding: '2rem', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', boxShadow: 'var(--shadow-sm)' }}>
+                <h4 style={{ color: 'var(--text-primary)', margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: '700' }}>
+                  Unavailable Dates
+                </h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+                  Add individual dates when you will not be available for appointments:
+                </p>
+
+                <form onSubmit={handleAddUnavailableDate} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                  <input
+                    type="date"
+                    value={newDate}
+                    onChange={(e) => setNewDate(e.target.value)}
+                    required
+                    style={{ flex: 1, padding: '0.5rem', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none', fontSize: '0.9rem' }}
+                  />
+                  <button
+                    type="submit"
+                    className="btn"
+                    style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
+                  >
+                    Add Date
+                  </button>
+                </form>
+
+                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                  <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block', marginBottom: '0.75rem' }}>
+                    Scheduled Holidays / Days Off:
+                  </strong>
+                  {unavailableDates.length === 0 ? (
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontStyle: 'italic', margin: 0 }}>
+                      No unavailable dates added.
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                      {unavailableDates.map((dateStr) => {
+                        // Format YYYY-MM-DD to friendly 'DD Mmm YYYY'
+                        const parts = dateStr.split('-');
+                        const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                        const formatted = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                        return (
+                          <div key={dateStr} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.4rem 0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                              {formatted}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteUnavailableDate(dateStr)}
+                              style={{ background: 'none', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600' }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>

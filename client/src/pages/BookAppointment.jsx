@@ -177,13 +177,19 @@ function BookAppointment() {
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const selectedDayName = daysOfWeek[selectedDate.getUTCDay()];
 
-    // Check if doctor is available on this day
-    const isAvailable = doctor.availability.includes(selectedDayName);
+    // 1. First check: Is the selected weekday included in the doctor's working days?
+    const doctorWorkingDays = doctor.workingDays && doctor.workingDays.length > 0 ? doctor.workingDays : doctor.availability;
+    const isWorkingDay = doctorWorkingDays.includes(selectedDayName);
 
-    if (!isAvailable) {
-      setDateValidationError(
-        `Dr. ${doctor.name.split(' ').slice(1).join(' ')} is not available on ${selectedDayName}s. Please choose: ${doctor.availability.join(', ')}`
-      );
+    if (!isWorkingDay) {
+      setDateValidationError('The doctor is not available on this day.');
+      return;
+    }
+
+    // 2. Second check: Check whether the selected date exists in the doctor's unavailable dates
+    if (doctor.unavailableDates && doctor.unavailableDates.includes(selectedDateStr)) {
+      setDateValidationError('The doctor is unavailable on this date. Please choose another date.');
+      return;
     }
   };
 
@@ -232,6 +238,7 @@ function BookAppointment() {
         throw new Error(data.message || 'Failed to book appointment');
       }
 
+      alert('Appointment booked successfully!');
       navigate('/appointments');
     } catch (err) {
       setError(err.message);
@@ -243,20 +250,14 @@ function BookAppointment() {
   if (loading) {
     return (
       <div className="container" style={{ textAlign: 'center', marginTop: '5rem' }}>
-        <span className="status-badge loading">Loading doctor schedule info...</span>
+        <span className="status-badge loading">Loading booking details...</span>
       </div>
     );
   }
 
   return (
-    <div className="container">
-      <div style={{ marginTop: '2rem' }}>
-        <Link to={`/doctors/${doctorId}`} style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: '500' }}>
-          &larr; Back to Doctor Details
-        </Link>
-      </div>
-
-      <div className="card" style={{ maxWidth: '650px', margin: '1.5rem auto 0 auto' }}>
+    <div className="container" style={{ maxWidth: '600px' }}>
+      <div className="card" style={{ padding: '2.5rem', marginTop: '2rem', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }}>
         <h2 style={{ color: 'var(--primary-color)', marginBottom: '0.25rem', textAlign: 'center' }}>
           Book Appointment
         </h2>
@@ -292,16 +293,17 @@ function BookAppointment() {
               </p>
             )}
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-              Doctor availability: <strong>{doctor?.availability.join(', ')}</strong>
+              Doctor availability: <strong>{doctor?.workingDays && doctor.workingDays.length > 0 ? doctor.workingDays.join(', ') : doctor?.availability.join(', ')}</strong>
             </p>
           </div>
 
           {/* Time Slot Selection */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
-              <ClockIcon size={16} /> Select Time Slot
-            </label>
-            <div className="timeslot-grid">
+          {date && !dateValidationError && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
+                <ClockIcon size={16} /> Select Time Slot
+              </label>
+              <div className="timeslot-grid">
               {timeSlots.map((slot) => {
                 const isBooked = bookedSlots.includes(slot);
                 const isPast = isPastSlot(slot);
@@ -393,6 +395,7 @@ function BookAppointment() {
               })}
             </div>
           </div>
+        )}
 
           {/* Symptoms description */}
           <div style={{ marginBottom: '2rem' }}>

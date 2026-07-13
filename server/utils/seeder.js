@@ -85,7 +85,9 @@ const seedDatabase = async () => {
         fees: docInfo.fees,
         hospital: docInfo.hospital,
         bio: docInfo.bio,
-        availability: docInfo.availability
+        availability: docInfo.availability,
+        workingDays: docInfo.availability,
+        unavailableDates: docInfo.name === 'Dr. Sarah Jenkins' ? ['2026-07-17'] : [] // sample unavailable date
       });
       await doctor.save();
     }
