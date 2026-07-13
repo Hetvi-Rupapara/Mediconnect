@@ -55,6 +55,9 @@ function Profile() {
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
+  // Password form toggle state
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+
   // UI state for custom logout modal confirmation
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -151,17 +154,8 @@ function Profile() {
     e.preventDefault();
     setPatientError('');
     setPatientSuccess('');
-
-    if (!patientName.trim()) {
-      setPatientError('Name is required');
-      return;
-    }
-    if (!patientEmail.trim()) {
-      setPatientError('Email is required');
-      return;
-    }
-
     setPatientSaveLoading(true);
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/auth/profile', {
@@ -206,13 +200,8 @@ function Profile() {
     e.preventDefault();
     setDoctorError('');
     setDoctorSuccess('');
-
-    if (!doctorName.trim() || !doctorSpecialization.trim() || !doctorHospital.trim()) {
-      setDoctorError('Required profile fields cannot be empty');
-      return;
-    }
-
     setDoctorSaveLoading(true);
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/doctors/profile/me', {
@@ -333,6 +322,7 @@ function Profile() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setShowPasswordForm(false);
       setTimeout(() => setPasswordSuccess(''), 3000);
     } catch (err) {
       setPasswordError(err.message);
@@ -734,58 +724,6 @@ function Profile() {
             </div>
           )}
 
-          {/* ============ DOCTOR AVAILABILITY SCHEDULE ============ */}
-          {userRole === 'doctor' && (
-            <div className="card" style={{ padding: '2.5rem', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
-                <CalendarIcon size={20} color="var(--primary-color)" style={{ marginRight: '0.6rem' }} />
-                <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.25rem', fontWeight: '700' }}>
-                  Manage Availability
-                </h3>
-              </div>
-
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-                Select the weekdays you are available to accept patient consultations:
-              </p>
-
-              {availSuccess && (
-                <div className="status-badge success" style={{ width: '100%', textAlign: 'center', marginBottom: '1rem', padding: '0.4rem' }}>
-                  {availSuccess}
-                </div>
-              )}
-              {availError && (
-                <div className="status-badge danger" style={{ width: '100%', textAlign: 'center', marginBottom: '1rem', padding: '0.4rem' }}>
-                  {availError}
-                </div>
-              )}
-
-              <form onSubmit={handleAvailabilitySubmit}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.75rem' }}>
-                  {daysOfWeek.map((day) => (
-                    <label key={day} className="checkbox-item" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }}>
-                      <input
-                        type="checkbox"
-                        checked={availability.includes(day)}
-                        onChange={() => handleAvailabilityToggle(day)}
-                        style={{ marginRight: '0.5rem', cursor: 'pointer' }}
-                      />
-                      <span style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-secondary)' }}>{day}</span>
-                    </label>
-                  ))}
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn"
-                  disabled={availSaveLoading}
-                  style={{ width: '100%', marginTop: '1.5rem', padding: '0.75rem', backgroundColor: 'var(--primary-color)' }}
-                >
-                  {availSaveLoading ? 'Saving Schedule...' : 'Save Availability'}
-                </button>
-              </form>
-            </div>
-          )}
-
           {/* ============ CARD 2: SECURITY (CHANGE PASSWORD) ============ */}
           <div className="card" style={{ padding: '2.5rem', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }}>
             <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '0.35rem' }}>
@@ -813,52 +751,82 @@ function Profile() {
               </div>
             )}
 
-            <form onSubmit={handlePasswordSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginBottom: '1.75rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.35rem' }}>Current Password</label>
-                  <input
-                    type="password"
-                    className="search-input"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    style={{ width: '100%', padding: '0.65rem' }}
-                    required
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.35rem' }}>New Password</label>
-                  <input
-                    type="password"
-                    className="search-input"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    style={{ width: '100%', padding: '0.65rem' }}
-                    required
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.35rem' }}>Confirm Password</label>
-                  <input
-                    type="password"
-                    className="search-input"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    style={{ width: '100%', padding: '0.65rem' }}
-                    required
-                  />
-                </div>
+            {!showPasswordForm ? (
+              <div style={{ textAlign: 'left' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.35rem' }}>Password</span>
+                <strong style={{ color: 'var(--text-primary)', fontSize: '1rem', fontWeight: '600', display: 'block', marginBottom: '1.25rem' }}>************</strong>
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordForm(true)}
+                  className="btn"
+                  style={{ width: '100%', backgroundColor: 'var(--primary-color)', padding: '0.8rem', fontWeight: '600' }}
+                >
+                  Change Password
+                </button>
               </div>
+            ) : (
+              <form onSubmit={handlePasswordSubmit}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginBottom: '1.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.35rem' }}>Current Password</label>
+                    <input
+                      type="password"
+                      className="search-input"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      style={{ width: '100%', padding: '0.65rem' }}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.35rem' }}>New Password</label>
+                    <input
+                      type="password"
+                      className="search-input"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      style={{ width: '100%', padding: '0.65rem' }}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.35rem' }}>Confirm Password</label>
+                    <input
+                      type="password"
+                      className="search-input"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      style={{ width: '100%', padding: '0.65rem' }}
+                      required
+                    />
+                  </div>
+                </div>
 
-              <button
-                type="submit"
-                className="btn"
-                disabled={passwordLoading}
-                style={{ width: '100%', backgroundColor: 'var(--primary-color)', padding: '0.8rem', fontWeight: '600' }}
-              >
-                {passwordLoading ? 'Updating Password...' : 'Update Password'}
-              </button>
-            </form>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    type="submit"
+                    className="btn"
+                    disabled={passwordLoading}
+                    style={{ flex: 1, backgroundColor: 'var(--primary-color)', padding: '0.8rem', fontWeight: '600' }}
+                  >
+                    {passwordLoading ? 'Updating Password...' : 'Update Password'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPasswordForm(false);
+                      setCurrentPassword('');
+                      setNewPassword('');
+                      setConfirmPassword('');
+                    }}
+                    className="btn"
+                    style={{ flex: 1, backgroundColor: 'var(--text-secondary)', padding: '0.8rem', fontWeight: '600' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
 
           {/* ============ CARD 3: ACCOUNT (LOGOUT) ============ */}
