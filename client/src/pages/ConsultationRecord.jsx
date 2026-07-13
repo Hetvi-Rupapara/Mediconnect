@@ -239,7 +239,6 @@ function ConsultationRecord() {
               id="symptoms"
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
-              placeholder="Describe symptoms presented by the patient..."
               rows="3"
               style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none', resize: 'vertical' }}
             />
@@ -251,7 +250,6 @@ function ConsultationRecord() {
               id="diagnosis"
               value={diagnosisSummary}
               onChange={(e) => setDiagnosisSummary(e.target.value)}
-              placeholder="Enter professional diagnosis summary..."
               rows="3"
               required
               style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none', resize: 'vertical' }}
@@ -264,7 +262,6 @@ function ConsultationRecord() {
               id="prescription"
               value={prescription}
               onChange={(e) => setPrescription(e.target.value)}
-              placeholder="Paracetamol 500mg&#10;Twice daily after meals"
               rows="4"
               style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none', resize: 'vertical' }}
             />
@@ -276,7 +273,6 @@ function ConsultationRecord() {
               id="advice"
               value={advice}
               onChange={(e) => setAdvice(e.target.value)}
-              placeholder="Drink plenty of fluids.&#10;Take sufficient rest.&#10;Return if symptoms worsen."
               rows="3"
               style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none', resize: 'vertical' }}
             />
