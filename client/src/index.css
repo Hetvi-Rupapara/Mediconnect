@@ -15,6 +15,7 @@
   --text-secondary: #475569;      /* Medium Slate for secondary labels */
   --text-muted: #64748b;          /* Light Slate for helper text */
   --success: #10b981;             /* Emerald Green */
+  --success-color: var(--success);
   --success-hover: #059669;
   --danger: #ef4444;              /* Red */
   --danger-color: var(--danger);

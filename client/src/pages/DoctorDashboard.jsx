@@ -209,7 +209,7 @@ function DoctorDashboard() {
                             <button
                               onClick={() => handleStatusChange(app._id, 'completed')}
                               className="btn"
-                              style={{ backgroundColor: 'var(--success-color)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                              style={{ backgroundColor: 'var(--success-color)', color: '#fff', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                             >
                               Complete
                             </button>
@@ -294,7 +294,7 @@ function DoctorDashboard() {
                             <button
                               onClick={() => handleStatusChange(app._id, 'completed')}
                               className="btn"
-                              style={{ backgroundColor: 'var(--success-color)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                              style={{ backgroundColor: 'var(--success-color)', color: '#fff', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                             >
                               Complete
                             </button>

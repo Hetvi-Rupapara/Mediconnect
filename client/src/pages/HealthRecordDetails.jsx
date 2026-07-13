@@ -143,10 +143,6 @@ function HealthRecordDetails() {
 
         </div>
 
-        {/* Footer Medical Notice Disclaimer */}
-        <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '2.5rem', paddingTop: '1.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-          Please consult a qualified healthcare professional for proper medical advice.
-        </div>
       </div>
     </div>
   );
