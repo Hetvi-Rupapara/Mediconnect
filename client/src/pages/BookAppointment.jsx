@@ -5,6 +5,7 @@ import { CalendarIcon, ClockIcon } from '../components/Icons';
 /**
  * BookAppointment Component
  * Allows authenticated patients to schedule appointments with a doctor.
+ * Features real-time slot availability based on date and current time comparison.
  */
 function BookAppointment() {
   const { doctorId } = useParams();
@@ -22,7 +23,7 @@ function BookAppointment() {
   const [dateValidationError, setDateValidationError] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
 
-  // Static standard time slots for simplicity in Version 1
+  // Static standard time slots
   const timeSlots = [
     '09:00 AM',
     '10:00 AM',
@@ -31,6 +32,59 @@ function BookAppointment() {
     '03:00 PM',
     '04:00 PM'
   ];
+
+  // Helper function to parse slot time (e.g. '09:00 AM') into comparable hours and minutes
+  const parseSlotTime = (slotStr) => {
+    const [time, modifier] = slotStr.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+    
+    if (modifier === 'PM' && hours !== 12) {
+      hours += 12;
+    }
+    if (modifier === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    
+    return { hours, minutes };
+  };
+
+  // Helper function to check if a slot's time has already passed today
+  const isPastSlot = (slotStr) => {
+    if (!date) return false;
+    
+    const today = new Date();
+    const selectedDate = new Date(date);
+    
+    // Clear time portions for pure date comparison
+    const todayMidnight = new Date(today);
+    todayMidnight.setHours(0, 0, 0, 0);
+    const selectedMidnight = new Date(selectedDate);
+    selectedMidnight.setHours(0, 0, 0, 0);
+    
+    // If selecting a future date, all configured slots are available
+    if (selectedMidnight > todayMidnight) {
+      return false;
+    }
+    
+    // If selecting a past date, all slots are disabled
+    if (selectedMidnight < todayMidnight) {
+      return true;
+    }
+    
+    // If selecting today, compare slot hours/minutes with current system hours/minutes
+    const { hours, minutes } = parseSlotTime(slotStr);
+    const currentHours = today.getHours();
+    const currentMinutes = today.getMinutes();
+    
+    if (currentHours > hours) {
+      return true;
+    }
+    if (currentHours === hours && currentMinutes >= minutes) {
+      return true;
+    }
+    
+    return false;
+  };
 
   useEffect(() => {
     // Check if token exists, redirect if not authenticated
@@ -60,6 +114,13 @@ function BookAppointment() {
 
     fetchDoctor();
   }, [doctorId, navigate]);
+
+  // Reset selected slot if it becomes a past/unavailable slot due to date changes
+  useEffect(() => {
+    if (selectedSlot && isPastSlot(selectedSlot)) {
+      setSelectedSlot('');
+    }
+  }, [date, selectedSlot]);
 
   // Fetch booked slots for the selected date
   useEffect(() => {
@@ -99,8 +160,20 @@ function BookAppointment() {
 
     if (!selectedDateStr) return;
 
-    // Convert date string to day name (e.g. 'Monday')
     const selectedDate = new Date(selectedDateStr);
+    
+    // Prevent and block selecting past dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedMidnight = new Date(selectedDate);
+    selectedMidnight.setHours(0, 0, 0, 0);
+    
+    if (selectedMidnight < today) {
+      setDateValidationError('Appointments cannot be booked for past dates.');
+      return;
+    }
+
+    // Convert date string to day name (e.g. 'Monday')
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const selectedDayName = daysOfWeek[selectedDate.getUTCDay()];
 
@@ -118,14 +191,20 @@ function BookAppointment() {
     e.preventDefault();
     setError('');
     
-    // Final check for date validation error
+    // Prevent submit if date is invalid or past
     if (dateValidationError) {
-      setError('Please choose an available date.');
+      setError(dateValidationError || 'Please choose an available date.');
       return;
     }
 
     if (!selectedSlot) {
       setError('Please select a time slot.');
+      return;
+    }
+
+    // Explicit check to block booking past slots
+    if (isPastSlot(selectedSlot)) {
+      setError('Selected time slot has already passed. Please select another slot.');
       return;
     }
 
@@ -153,7 +232,6 @@ function BookAppointment() {
         throw new Error(data.message || 'Failed to book appointment');
       }
 
-      // Redirect to appointments dashboard on success
       navigate('/appointments');
     } catch (err) {
       setError(err.message);
@@ -174,7 +252,7 @@ function BookAppointment() {
     <div className="container">
       <div style={{ marginTop: '2rem' }}>
         <Link to={`/doctors/${doctorId}`} style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: '500' }}>
-          ← Back to Doctor Details
+          &larr; Back to Doctor Details
         </Link>
       </div>
 
@@ -204,7 +282,7 @@ function BookAppointment() {
               className="search-input"
               style={{ width: '100%' }}
               value={date}
-              min={new Date().toISOString().split('T')[0]} // Block past dates
+              min={new Date().toISOString().split('T')[0]} // Block selecting past dates in native picker
               onChange={handleDateChange}
               required
             />
@@ -226,22 +304,90 @@ function BookAppointment() {
             <div className="timeslot-grid">
               {timeSlots.map((slot) => {
                 const isBooked = bookedSlots.includes(slot);
+                const isPast = isPastSlot(slot);
+                const isSelected = selectedSlot === slot;
+                
+                // 1. Selected state styling
+                if (isSelected) {
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      className="timeslot-btn selected"
+                      onClick={() => setSelectedSlot(slot)}
+                    >
+                      {slot}
+                    </button>
+                  );
+                }
+                
+                // 2. Booked state styling (Future enhancement ready)
+                if (isBooked) {
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      className="timeslot-btn"
+                      disabled={true}
+                      style={{
+                        backgroundColor: '#fef2f2',
+                        color: '#94a3b8',
+                        cursor: 'not-allowed',
+                        borderColor: '#fca5a5',
+                        pointerEvents: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {slot}
+                      <span style={{
+                        fontSize: '0.65rem',
+                        padding: '0.1rem 0.35rem',
+                        backgroundColor: '#fee2e2',
+                        color: '#ef4444',
+                        borderRadius: '4px',
+                        marginLeft: '0.4rem',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.03em'
+                      }}>
+                        Booked
+                      </span>
+                    </button>
+                  );
+                }
+                
+                // 3. Past state styling (Unavailable/Passed)
+                if (isPast) {
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      className="timeslot-btn"
+                      disabled={true}
+                      style={{
+                        backgroundColor: '#f1f5f9',
+                        color: '#94a3b8',
+                        cursor: 'not-allowed',
+                        borderColor: '#cbd5e1',
+                        pointerEvents: 'none'
+                      }}
+                    >
+                      {slot} (Passed)
+                    </button>
+                  );
+                }
+                
+                // 4. Default available state styling
                 return (
                   <button
                     key={slot}
                     type="button"
-                    className={`timeslot-btn ${selectedSlot === slot ? 'selected' : ''}`}
-                    disabled={isBooked}
+                    className="timeslot-btn"
                     onClick={() => setSelectedSlot(slot)}
-                    style={isBooked ? {
-                      backgroundColor: '#f1f5f9',
-                      color: '#94a3b8',
-                      cursor: 'not-allowed',
-                      borderColor: '#cbd5e1',
-                      textDecoration: 'line-through'
-                    } : {}}
                   >
-                    {slot} {isBooked && ' (Unavailable)'}
+                    {slot}
                   </button>
                 );
               })}
