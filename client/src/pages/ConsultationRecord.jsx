@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useNotification } from '../components/NotificationProvider.jsx';
 
 /**
  * ConsultationRecord Component
@@ -7,6 +8,11 @@ import { useParams, useNavigate } from 'react-router-dom';
  * and complete the associated appointment as the final step.
  */
 function ConsultationRecord() {
+  useEffect(() => {
+    document.title = 'MediConnect | Consultation Record';
+  }, []);
+
+  const { showNotification, showLoading, hideLoading } = useNotification();
   const { appointmentId } = useParams();
   const navigate = useNavigate();
 
@@ -81,10 +87,9 @@ function ConsultationRecord() {
     }
   };
 
-  const handleSaveRecord = async (e) => {
-    if (e) e.preventDefault();
+  const handleSaveRecord = async () => {
     if (!diagnosisSummary.trim()) {
-      setError('Diagnosis Summary is required before saving');
+      showNotification('Diagnosis Summary is required before saving.', 'error');
       return false;
     }
 
@@ -125,27 +130,32 @@ function ConsultationRecord() {
       if (!recordId) {
         setRecordId(data._id);
       }
-      setMessage('Consultation record saved successfully.');
       return true;
     } catch (err) {
-      setError(err.message || 'Error saving consultation record');
+      showNotification(`Error saving consultation record: ${err.message}`, 'error');
       return false;
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCompleteAppointment = async () => {
+  const handleCompleteAppointment = async (e) => {
+    if (e) e.preventDefault();
+
     if (!diagnosisSummary.trim()) {
-      setError('Please fill in the Diagnosis Summary and save the record first.');
+      showNotification('Please fill in the Diagnosis Summary to complete the appointment.', 'error');
       return;
     }
 
+    showLoading('Saving medical record...');
+
     // Save record first to capture any unsaved edits
     const saveSuccess = await handleSaveRecord();
-    if (!saveSuccess) return;
+    if (!saveSuccess) {
+      hideLoading();
+      return;
+    }
 
-    setSaving(true);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/appointments/${appointmentId}/status`, {
@@ -163,10 +173,13 @@ function ConsultationRecord() {
         throw new Error(data.message || 'Failed to complete appointment');
       }
 
-      // Redirect back to doctor dashboard
-      navigate('/doctor/dashboard');
+      hideLoading();
+      showNotification('Appointment completed successfully.', 'success', () => {
+        navigate('/doctor/dashboard');
+      });
     } catch (err) {
-      setError(err.message || 'Error completing appointment');
+      hideLoading();
+      showNotification(`Unable to complete appointment: ${err.message}. Please try again.`, 'error');
       setSaving(false);
     }
   };
@@ -232,7 +245,7 @@ function ConsultationRecord() {
           </div>
         )}
 
-        <form onSubmit={(e) => { e.preventDefault(); handleSaveRecord(); }}>
+        <form onSubmit={handleCompleteAppointment}>
           <div className="form-group" style={{ marginBottom: '1.25rem' }}>
             <label htmlFor="symptoms" style={{ display: 'block', marginBottom: '0.4rem', fontWeight: '600' }}>Symptoms</label>
             <textarea
@@ -290,21 +303,12 @@ function ConsultationRecord() {
           </div>
 
           {/* Action Row */}
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
             <button
               type="submit"
               disabled={saving}
               className="btn"
-              style={{ flex: 1, padding: '0.75rem', fontSize: '1rem', minWidth: '150px' }}
-            >
-              {saving ? 'Saving...' : 'Save Record'}
-            </button>
-            <button
-              type="button"
-              disabled={saving}
-              onClick={handleCompleteAppointment}
-              className="btn"
-              style={{ flex: 1, backgroundColor: 'var(--success-color)', padding: '0.75rem', fontSize: '1rem', minWidth: '150px' }}
+              style={{ width: '100%', maxWidth: '300px', backgroundColor: 'var(--success-color)', padding: '0.75rem', fontSize: '1rem' }}
             >
               {saving ? 'Completing...' : 'Complete Appointment'}
             </button>

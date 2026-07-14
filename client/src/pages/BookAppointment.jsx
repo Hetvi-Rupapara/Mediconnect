@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { CalendarIcon, ClockIcon } from '../components/Icons';
+import { useNotification } from '../components/NotificationProvider.jsx';
 
 /**
  * BookAppointment Component
@@ -8,6 +9,11 @@ import { CalendarIcon, ClockIcon } from '../components/Icons';
  * Features real-time slot availability based on date and current time comparison.
  */
 function BookAppointment() {
+  useEffect(() => {
+    document.title = 'MediConnect | Book Appointment';
+  }, []);
+
+  const { showNotification, showLoading, hideLoading } = useNotification();
   const { doctorId } = useParams();
   const navigate = useNavigate();
 
@@ -23,15 +29,73 @@ function BookAppointment() {
   const [dateValidationError, setDateValidationError] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
 
-  // Static standard time slots
-  const timeSlots = [
-    '09:00 AM',
-    '10:00 AM',
-    '11:00 AM',
-    '02:00 PM',
-    '03:00 PM',
-    '04:00 PM'
-  ];
+  // Specialty duration assignment
+  const getSpecialtyDuration = (specialization) => {
+    const spec = (specialization || '').trim().toLowerCase();
+    if (spec.includes('general physician')) return 15;
+    if (spec.includes('dermatologist')) return 15;
+    if (spec.includes('pediatrician')) return 20;
+    if (spec.includes('cardiologist')) return 30;
+    return 30; // default slot duration fallback
+  };
+
+  // Convert "09:00 AM" to total minutes from midnight
+  const parseTime12h = (timeStr) => {
+    const parts = (timeStr || '').match(/^(\d+):(\d+)\s*(AM|PM)$/i);
+    if (!parts) return 0;
+    let hours = parseInt(parts[1], 10);
+    const minutes = parseInt(parts[2], 10);
+    const ampm = parts[3].toUpperCase();
+
+    if (ampm === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (ampm === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    return hours * 60 + minutes;
+  };
+
+  // Convert total minutes from midnight to "09:00 AM" format
+  const formatTime12h = (totalMinutes) => {
+    let hours = Math.floor(totalMinutes / 60) % 24;
+    const minutes = totalMinutes % 60;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+
+    let displayHours = hours % 12;
+    if (displayHours === 0) displayHours = 12;
+
+    const hStr = displayHours.toString().padStart(2, '0');
+    const mStr = minutes.toString().padStart(2, '0');
+
+    return `${hStr}:${mStr} ${ampm}`;
+  };
+
+  // Generate dynamic slots based on doctor's specialization and working hours
+  const generateDoctorSlots = () => {
+    if (!doctor) return [];
+    const duration = getSpecialtyDuration(doctor.specialization);
+    const start = parseTime12h(doctor.startTime || '09:00 AM');
+    const end = parseTime12h(doctor.endTime || '05:00 PM');
+
+    const slots = [];
+    for (let current = start; current < end; current += duration) {
+      slots.push(formatTime12h(current));
+    }
+    return slots;
+  };
+
+  const timeSlots = generateDoctorSlots();
+
+  const morningSlots = [];
+  const afternoonSlots = [];
+  timeSlots.forEach((slot) => {
+    const mins = parseTime12h(slot);
+    if (mins < 720) {
+      morningSlots.push(slot);
+    } else {
+      afternoonSlots.push(slot);
+    }
+  });
 
   // Helper function to parse slot time (e.g. '09:00 AM') into comparable hours and minutes
   const parseSlotTime = (slotStr) => {
@@ -185,21 +249,22 @@ function BookAppointment() {
       setDateValidationError('The doctor is not available on this day.');
       return;
     }
-
-    // 2. Second check: Check whether the selected date exists in the doctor's unavailable dates
-    if (doctor.unavailableDates && doctor.unavailableDates.includes(selectedDateStr)) {
-      setDateValidationError('The doctor is unavailable on this date. Please choose another date.');
-      return;
-    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitLoading) return; // Prevent duplicate submissions from double clicks
     setError('');
     
     // Prevent submit if date is invalid or past
     if (dateValidationError) {
       setError(dateValidationError || 'Please choose an available date.');
+      return;
+    }
+
+    // Block submit if the doctor is on leave on this date
+    if (doctor && doctor.unavailableDates && doctor.unavailableDates.includes(date)) {
+      setError('The doctor is unavailable on this date. Please choose another date.');
       return;
     }
 
@@ -215,6 +280,7 @@ function BookAppointment() {
     }
 
     setSubmitLoading(true);
+    showLoading('Booking appointment...');
 
     try {
       const token = localStorage.getItem('token');
@@ -238,13 +304,139 @@ function BookAppointment() {
         throw new Error(data.message || 'Failed to book appointment');
       }
 
-      alert('Appointment booked successfully!');
-      navigate('/appointments');
+      hideLoading();
+      showNotification('Appointment booked successfully!', 'success', () => {
+        navigate('/appointments');
+      });
     } catch (err) {
+      hideLoading();
       setError(err.message);
     } finally {
       setSubmitLoading(false);
     }
+  };
+
+  const renderSlotButton = (slot) => {
+    const isBooked = bookedSlots.includes(slot);
+    const isPast = isPastSlot(slot);
+    const isSelected = selectedSlot === slot;
+    const isLeave = doctor?.unavailableDates && doctor.unavailableDates.includes(date);
+
+    if (isSelected) {
+      return (
+        <button
+          key={slot}
+          type="button"
+          className="timeslot-btn selected"
+          onClick={() => setSelectedSlot(slot)}
+        >
+          {slot}
+        </button>
+      );
+    }
+
+    if (isLeave) {
+      return (
+        <button
+          key={slot}
+          type="button"
+          className="timeslot-btn"
+          disabled={true}
+          style={{
+            backgroundColor: '#f8fafc',
+            color: '#cbd5e1',
+            borderColor: '#e2e8f0',
+            cursor: 'not-allowed',
+            pointerEvents: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {slot}
+          <span style={{
+            fontSize: '0.65rem',
+            padding: '0.1rem 0.35rem',
+            backgroundColor: '#f1f5f9',
+            color: '#64748b',
+            borderRadius: '4px',
+            marginLeft: '0.4rem',
+            fontWeight: '700',
+            textTransform: 'uppercase',
+            letterSpacing: '0.03em'
+          }}>
+            Unavailable
+          </span>
+        </button>
+      );
+    }
+
+    if (isBooked) {
+      return (
+        <button
+          key={slot}
+          type="button"
+          className="timeslot-btn"
+          disabled={true}
+          style={{
+            backgroundColor: '#f1f5f9',
+            color: '#94a3b8',
+            borderColor: '#cbd5e1',
+            cursor: 'not-allowed',
+            pointerEvents: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {slot}
+          <span style={{
+            fontSize: '0.65rem',
+            padding: '0.1rem 0.35rem',
+            backgroundColor: '#fee2e2',
+            color: '#ef4444',
+            borderRadius: '4px',
+            marginLeft: '0.4rem',
+            fontWeight: '700',
+            textTransform: 'uppercase',
+            letterSpacing: '0.03em'
+          }}>
+            Booked
+          </span>
+        </button>
+      );
+    }
+
+    if (isPast) {
+      return (
+        <button
+          key={slot}
+          type="button"
+          className="timeslot-btn"
+          disabled={true}
+          style={{
+            backgroundColor: '#f1f5f9',
+            color: '#94a3b8',
+            borderColor: '#cbd5e1',
+            cursor: 'not-allowed',
+            pointerEvents: 'none'
+          }}
+        >
+          {slot}
+        </button>
+      );
+    }
+
+    return (
+      <button
+        key={slot}
+        type="button"
+        className="timeslot-btn"
+        onClick={() => setSelectedSlot(slot)}
+      >
+        {slot}
+      </button>
+    );
   };
 
   if (loading) {
@@ -303,99 +495,38 @@ function BookAppointment() {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
                 <ClockIcon size={16} /> Select Time Slot
               </label>
-              <div className="timeslot-grid">
-              {timeSlots.map((slot) => {
-                const isBooked = bookedSlots.includes(slot);
-                const isPast = isPastSlot(slot);
-                const isSelected = selectedSlot === slot;
-                
-                // 1. Selected state styling
-                if (isSelected) {
-                  return (
-                    <button
-                      key={slot}
-                      type="button"
-                      className="timeslot-btn selected"
-                      onClick={() => setSelectedSlot(slot)}
-                    >
-                      {slot}
-                    </button>
-                  );
-                }
-                
-                // 2. Booked state styling (Future enhancement ready)
-                if (isBooked) {
-                  return (
-                    <button
-                      key={slot}
-                      type="button"
-                      className="timeslot-btn"
-                      disabled={true}
-                      style={{
-                        backgroundColor: '#fef2f2',
-                        color: '#94a3b8',
-                        cursor: 'not-allowed',
-                        borderColor: '#fca5a5',
-                        pointerEvents: 'none',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      {slot}
-                      <span style={{
-                        fontSize: '0.65rem',
-                        padding: '0.1rem 0.35rem',
-                        backgroundColor: '#fee2e2',
-                        color: '#ef4444',
-                        borderRadius: '4px',
-                        marginLeft: '0.4rem',
-                        fontWeight: '700',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.03em'
-                      }}>
-                        Booked
-                      </span>
-                    </button>
-                  );
-                }
-                
-                // 3. Past state styling (Unavailable/Passed)
-                if (isPast) {
-                  return (
-                    <button
-                      key={slot}
-                      type="button"
-                      className="timeslot-btn"
-                      disabled={true}
-                      style={{
-                        backgroundColor: '#f1f5f9',
-                        color: '#94a3b8',
-                        cursor: 'not-allowed',
-                        borderColor: '#cbd5e1',
-                        pointerEvents: 'none'
-                      }}
-                    >
-                      {slot} (Passed)
-                    </button>
-                  );
-                }
-                
-                // 4. Default available state styling
-                return (
-                  <button
-                    key={slot}
-                    type="button"
-                    className="timeslot-btn"
-                    onClick={() => setSelectedSlot(slot)}
-                  >
-                    {slot}
-                  </button>
-                );
-              })}
+
+              {/* Morning Section */}
+              {morningSlots.length > 0 && (
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '0.4rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.2rem' }}>
+                    Morning
+                  </span>
+                  <div className="timeslot-grid">
+                    {morningSlots.map((slot) => renderSlotButton(slot))}
+                  </div>
+                </div>
+              )}
+
+              {/* Afternoon Section */}
+              {afternoonSlots.length > 0 && (
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '0.4rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.2rem' }}>
+                    Afternoon
+                  </span>
+                  <div className="timeslot-grid">
+                    {afternoonSlots.map((slot) => renderSlotButton(slot))}
+                  </div>
+                </div>
+              )}
+
+              {morningSlots.length === 0 && afternoonSlots.length === 0 && (
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', textAlign: 'center' }}>
+                  No available slots generated for this doctor.
+                </p>
+              )}
             </div>
-          </div>
-        )}
+          )}
 
           {/* Symptoms description */}
           <div style={{ marginBottom: '2rem' }}>

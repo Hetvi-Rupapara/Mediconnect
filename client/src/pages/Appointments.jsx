@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { CalendarIcon, ClockIcon, LocationIcon } from '../components/Icons';
+import { useNotification } from '../components/NotificationProvider.jsx';
 
 /**
  * Appointments Component
@@ -8,6 +9,10 @@ import { CalendarIcon, ClockIcon, LocationIcon } from '../components/Icons';
  * Upcoming, Completed, and Medical Records.
  */
 function Appointments() {
+  useEffect(() => {
+    document.title = 'MediConnect | My Appointments';
+  }, []);
+
   const [appointments, setAppointments] = useState([]);
   const [records, setRecords] = useState([]);
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -66,32 +71,33 @@ function Appointments() {
     fetchAppointmentsAndRecords();
   }, [navigate]);
 
+  const { showNotification, showConfirm } = useNotification();
+
   // Handle appointment cancellation (DELETE)
-  const handleCancel = async (id) => {
-    const confirmCancel = window.confirm('Are you sure you want to cancel this appointment?');
-    if (!confirmCancel) return;
+  const handleCancel = (id) => {
+    showConfirm('Are you sure you want to cancel this appointment?', async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/appointments/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/appointments/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to cancel appointment');
         }
-      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to cancel appointment');
+        // Update local state by removing the cancelled appointment
+        setAppointments(appointments.filter((app) => app._id !== id));
+        showNotification('Appointment cancelled successfully.', 'success');
+      } catch (err) {
+        showNotification(`Error cancelling appointment: ${err.message}`, 'error');
       }
-
-      // Update local state by removing the cancelled appointment
-      setAppointments(appointments.filter((app) => app._id !== id));
-      alert('Appointment cancelled successfully.');
-    } catch (err) {
-      alert(`Error cancelling appointment: ${err.message}`);
-    }
+    });
   };
 
   // Helper function to split appointments into Upcoming vs History

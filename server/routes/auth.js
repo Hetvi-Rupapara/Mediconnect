@@ -26,6 +26,18 @@ router.post('/register', async (req, res) => {
 
   const normalizedEmail = email.trim().toLowerCase();
 
+  // Validate doctor registration entirely on the backend
+  if (role === 'doctor') {
+    const hasAuthorizedDomain = normalizedEmail.endsWith('@mediconnect.com');
+    const hasInviteCode = req.headers['x-doctor-invite-code'] === 'MEDICONNECT_DOC_2026' || req.body.inviteCode === 'MEDICONNECT_DOC_2026';
+    
+    if (!hasAuthorizedDomain && !hasInviteCode) {
+      return res.status(403).json({ 
+        message: 'Doctor registration is restricted. Predefined credentials or authorization required.' 
+      });
+    }
+  }
+
   try {
     // Check if user already exists
     let user = await User.findOne({ email: normalizedEmail });

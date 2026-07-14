@@ -6,6 +6,10 @@ import { Link } from 'react-router-dom';
  * Entry gateway page for guest users to either Login or Create Account.
  */
 function Account() {
+  React.useEffect(() => {
+    document.title = 'MediConnect | Account';
+  }, []);
+
   return (
     <div className="container" style={{ maxWidth: '500px', margin: '4rem auto' }}>
       <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>

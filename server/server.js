@@ -11,8 +11,24 @@ const app = express();
 // Connect to the MongoDB database
 connectDB();
 
-// Middleware: Enable Cross-Origin Resource Sharing (CORS)
-app.use(cors());
+// Middleware: Enable Cross-Origin Resource Sharing (CORS) with origin validation
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
 
 // Middleware: Parse incoming JSON requests
 app.use(express.json());
@@ -32,6 +48,16 @@ app.use('/api/doctors', doctorsRouter);
 app.use('/api/appointments', appointmentsRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/health-records', healthRecordRouter);
+
+// Global production-ready error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err : {}
+  });
+});
 
 // Set port from environment variable or default to 5000
 const PORT = process.env.PORT || 5000;

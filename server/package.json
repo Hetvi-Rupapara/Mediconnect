@@ -4,7 +4,8 @@
   "description": "MediConnect Backend Server",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "seed": "node scripts/seedDoctors.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

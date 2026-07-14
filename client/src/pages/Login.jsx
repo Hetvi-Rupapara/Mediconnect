@@ -6,6 +6,10 @@ import { useNavigate, Link } from 'react-router-dom';
  * Handles login credentials authentication.
  */
 function Login() {
+  React.useEffect(() => {
+    document.title = 'MediConnect | Login';
+  }, []);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -45,7 +49,7 @@ function Login() {
 
       // Verify that the user's registered role matches their selected login role
       if (data.user.role !== role) {
-        throw new Error(`This account is registered as a ${data.user.role}, not a ${role}.`);
+        throw new Error('Invalid credentials');
       }
 
       // Store JWT token and basic user details in local storage

@@ -6,6 +6,10 @@ import { Link } from 'react-router-dom';
  * Placeholder page showing terms of usage for MediConnect.
  */
 function TermsOfService() {
+  React.useEffect(() => {
+    document.title = 'MediConnect | Terms of Service';
+  }, []);
+
   return (
     <div className="container" style={{ maxWidth: '800px', margin: '3rem auto' }}>
       <div className="card" style={{ padding: '3rem' }}>

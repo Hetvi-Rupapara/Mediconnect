@@ -1,16 +1,21 @@
-# React + Vite
+# MediConnect Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This directory contains the React-based frontend module for the MediConnect application. It delivers a healthcare-focused user experience for scheduling medical appointments, managing patient/doctor records, and consulting the AI chatbot assistant.
 
-Currently, two official plugins are available:
+## Features Map
+- Patient portal for doctor lookups, calendar booking, profile customization, and record history.
+- Doctor dashboard for accepting, rejecting, or completing appointments, and filing consultation notes.
+- Secure session routing and interactive confirmation modals matching the corporate design system.
+- Integration with the OpenRouter AI healthcare helper chat API.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Core Stack
+- React 19
+- React Router 7 (Single Page Application Router)
+- CSS3 (Vanilla design style sheets)
+- Vite 8 (Hot Module Replacement build tool)
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Key Development Commands
+- `npm install` - Setup local packages.
+- `npm run dev` - Start the Vite hot reloading local development web server.
+- `npm run build` - Compile and output compressed production static assets in the dist/ folder.
+- `npm run lint` - Run the Oxlint engine to check for lint warnings.

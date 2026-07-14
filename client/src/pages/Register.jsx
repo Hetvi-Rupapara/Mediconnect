@@ -6,6 +6,10 @@ import { useNavigate, Link } from 'react-router-dom';
  * Handles new account creation for both Patients and Doctors.
  */
 function Register() {
+  React.useEffect(() => {
+    document.title = 'MediConnect | Register';
+  }, []);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',

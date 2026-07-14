@@ -7,6 +7,10 @@ import { BriefcaseIcon, LocationIcon, DollarIcon, ShieldIcon } from '../componen
  * Lists all doctors and provides real-time search and filter controls.
  */
 function Doctors() {
+  useEffect(() => {
+    document.title = 'MediConnect | Find Doctors';
+  }, []);
+
   const [doctors, setDoctors] = useState([]);
   const [search, setSearch] = useState('');
   const [specialization, setSpecialization] = useState('');

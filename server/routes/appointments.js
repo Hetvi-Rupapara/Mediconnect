@@ -19,9 +19,107 @@ router.post('/', auth, async (req, res) => {
 
   try {
     // Check if the doctor exists
-    const doctorExists = await Doctor.findById(doctor);
-    if (!doctorExists) {
+    const doctorProfile = await Doctor.findById(doctor);
+    if (!doctorProfile) {
       return res.status(404).json({ message: 'Selected doctor not found' });
+    }
+
+    // 1. Prevent booking appointments in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(date);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      return res.status(400).json({ message: 'Appointments cannot be booked for past dates.' });
+    }
+
+    // 2. Validate selected weekday matches doctor's working days
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const selectedDayName = daysOfWeek[selectedDate.getUTCDay()];
+    const doctorWorkingDays = doctorProfile.workingDays && doctorProfile.workingDays.length > 0 
+      ? doctorProfile.workingDays 
+      : doctorProfile.availability;
+    
+    if (!doctorWorkingDays.includes(selectedDayName)) {
+      return res.status(400).json({ message: 'The doctor is not available on this day.' });
+    }
+
+    // 3. Validate selected date is not in doctor's unavailable dates/holidays
+    if (doctorProfile.unavailableDates && doctorProfile.unavailableDates.includes(date)) {
+      return res.status(400).json({ message: 'The doctor is unavailable on this date. Please choose another date.' });
+    }
+
+    // 5. Parse time slot and validate it falls within doctor's working hours and matches specialty intervals
+    const parseTime12h = (timeStr) => {
+      const parts = (timeStr || '').match(/^(\d+):(\d+)\s*(AM|PM)$/i);
+      if (!parts) return -1;
+      let hours = parseInt(parts[1], 10);
+      const minutes = parseInt(parts[2], 10);
+      const ampm = parts[3].toUpperCase();
+      
+      if (ampm === 'PM' && hours !== 12) {
+        hours += 12;
+      } else if (ampm === 'AM' && hours === 12) {
+        hours = 0;
+      }
+      return hours * 60 + minutes;
+    };
+
+    const getSpecialtyDuration = (specialization) => {
+      const spec = (specialization || '').trim().toLowerCase();
+      if (spec.includes('general physician')) return 15;
+      if (spec.includes('dermatologist')) return 15;
+      if (spec.includes('pediatrician')) return 20;
+      if (spec.includes('cardiologist')) return 30;
+      return 30; // Fallback
+    };
+
+    const slotMins = parseTime12h(timeSlot);
+    const startMins = parseTime12h(doctorProfile.startTime || '09:00 AM');
+    const endMins = parseTime12h(doctorProfile.endTime || '05:00 PM');
+
+    if (slotMins < 0 || startMins < 0 || endMins < 0) {
+      return res.status(400).json({ message: 'Invalid time slot format.' });
+    }
+
+    // Must be between start and end hours
+    if (slotMins < startMins || slotMins >= endMins) {
+      return res.status(400).json({ message: "Selected time slot falls outside of the doctor's working hours." });
+    }
+
+    // Must align with the dynamic intervals starting from startTime
+    const duration = getSpecialtyDuration(doctorProfile.specialization);
+    if ((slotMins - startMins) % duration !== 0) {
+      return res.status(400).json({ message: "Selected time slot does not align with the doctor's consultation slot duration." });
+    }
+
+    // Check if slot has already passed today
+    const todayMidnight = new Date(today);
+    todayMidnight.setHours(0, 0, 0, 0);
+    const selectedMidnight = new Date(selectedDate);
+    selectedMidnight.setHours(0, 0, 0, 0);
+
+    if (selectedMidnight.getTime() === todayMidnight.getTime()) {
+      const nowHours = today.getHours();
+      const nowMins = today.getMinutes();
+      const nowTotal = nowHours * 60 + nowMins;
+      
+      if (slotMins <= nowTotal) {
+        return res.status(400).json({ message: 'Selected time slot has already passed today.' });
+      }
+    }
+
+    // 4. Validate double-booking: Check if the slot is already taken
+    const existingAppointment = await Appointment.findOne({
+      doctor,
+      date,
+      timeSlot,
+      status: { $in: ['pending', 'accepted', 'completed'] }
+    });
+
+    if (existingAppointment) {
+      return res.status(400).json({ message: 'This time slot is already booked.' });
     }
 
     // Create a new Appointment record

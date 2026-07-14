@@ -174,11 +174,7 @@ router.put('/profile/working-days', auth, async (req, res) => {
     return res.status(403).json({ message: 'Access denied: Doctors only' });
   }
 
-  const { workingDays } = req.body;
-
-  if (!workingDays || !Array.isArray(workingDays)) {
-    return res.status(400).json({ message: 'Please provide working days as an array' });
-  }
+  const { workingDays, startTime, endTime } = req.body;
 
   try {
     const profile = await Doctor.findOne({ user: req.user.id });
@@ -186,8 +182,16 @@ router.put('/profile/working-days', auth, async (req, res) => {
       return res.status(404).json({ message: 'Doctor profile not found' });
     }
 
-    profile.workingDays = workingDays;
-    profile.availability = workingDays; // Sync for backward compatibility
+    if (workingDays && Array.isArray(workingDays)) {
+      profile.workingDays = workingDays;
+      profile.availability = workingDays; // Sync for backward compatibility
+    }
+    if (startTime) {
+      profile.startTime = startTime;
+    }
+    if (endTime) {
+      profile.endTime = endTime;
+    }
     await profile.save();
 
     res.json(profile);

@@ -8,6 +8,10 @@ import { AIIcon, StethoscopeIcon } from '../components/Icons';
  * Connects directly to the Express backend `/api/ai/chat` endpoint.
  */
 function AIAssistant() {
+  useEffect(() => {
+    document.title = 'MediConnect | AI Assistant';
+  }, []);
+
   const navigate = useNavigate();
   const [messages, setMessages] = useState([
     {

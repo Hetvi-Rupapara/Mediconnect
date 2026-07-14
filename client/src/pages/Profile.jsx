@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserIcon, EmailIcon, StethoscopeIcon, CalendarIcon, BriefcaseIcon, DollarIcon, LocationIcon, ShieldIcon, LogoutIcon } from '../components/Icons';
+import { useNotification } from '../components/NotificationProvider.jsx';
 
 /**
  * Profile Component
@@ -9,6 +10,11 @@ import { UserIcon, EmailIcon, StethoscopeIcon, CalendarIcon, BriefcaseIcon, Doll
  * Organizes information cleanly using descriptive cards, dynamic counters, and custom action links.
  */
 function Profile() {
+  useEffect(() => {
+    document.title = 'MediConnect | Profile';
+  }, []);
+
+  const { showNotification, showConfirm, showLoading, hideLoading } = useNotification();
   const navigate = useNavigate();
 
   // Authentication & Global states
@@ -58,8 +64,7 @@ function Profile() {
   // Password form toggle state
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
-  // UI state for custom logout modal confirmation
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -155,6 +160,7 @@ function Profile() {
     setPatientError('');
     setPatientSuccess('');
     setPatientSaveLoading(true);
+    showLoading('Updating profile...');
 
     try {
       const token = localStorage.getItem('token');
@@ -185,10 +191,11 @@ function Profile() {
         role: data.role
       }));
 
-      setPatientSuccess('Profile updated successfully!');
+      hideLoading();
+      showNotification('Profile updated successfully!', 'success');
       setPatientEditMode(false);
-      setTimeout(() => setPatientSuccess(''), 3000);
     } catch (err) {
+      hideLoading();
       setPatientError(err.message);
     } finally {
       setPatientSaveLoading(false);
@@ -201,6 +208,7 @@ function Profile() {
     setDoctorError('');
     setDoctorSuccess('');
     setDoctorSaveLoading(true);
+    showLoading('Updating profile...');
 
     try {
       const token = localStorage.getItem('token');
@@ -230,10 +238,11 @@ function Profile() {
       const userObj = JSON.parse(localStorage.getItem('user'));
       localStorage.setItem('user', JSON.stringify({ ...userObj, name: data.name }));
 
-      setDoctorSuccess('Doctor information updated successfully!');
+      hideLoading();
+      showNotification('Doctor information updated successfully!', 'success');
       setDoctorEditMode(false);
-      setTimeout(() => setDoctorSuccess(''), 3000);
     } catch (err) {
+      hideLoading();
       setDoctorError(err.message);
     } finally {
       setDoctorSaveLoading(false);
@@ -255,6 +264,7 @@ function Profile() {
     setAvailError('');
     setAvailSuccess('');
     setAvailSaveLoading(true);
+    showLoading('Updating availability...');
 
     try {
       const token = localStorage.getItem('token');
@@ -273,9 +283,10 @@ function Profile() {
       }
 
       setDoctorProfile(data);
-      setAvailSuccess('Availability schedule saved successfully!');
-      setTimeout(() => setAvailSuccess(''), 3000);
+      hideLoading();
+      showNotification('Availability schedule saved successfully!', 'success');
     } catch (err) {
+      hideLoading();
       setAvailError(err.message);
     } finally {
       setAvailSaveLoading(false);
@@ -302,6 +313,7 @@ function Profile() {
     }
 
     setPasswordLoading(true);
+    showLoading('Updating password...');
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/auth/password', {
@@ -318,13 +330,14 @@ function Profile() {
         throw new Error(data.message || 'Failed to change password');
       }
 
-      setPasswordSuccess('Password updated successfully!');
+      hideLoading();
+      showNotification('Password updated successfully!', 'success');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setShowPasswordForm(false);
-      setTimeout(() => setPasswordSuccess(''), 3000);
     } catch (err) {
+      hideLoading();
       setPasswordError(err.message);
     } finally {
       setPasswordLoading(false);
@@ -380,11 +393,7 @@ function Profile() {
               <a href={`mailto:${displayEmail}`} style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>{displayEmail}</a>
             </p>
             
-            {/* Status Badge */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}>
-              <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--success)' }}></span>
-              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--success)' }}>Active Account</span>
-            </div>
+
 
             {/* Role Badge */}
             <span style={{ 
@@ -445,7 +454,7 @@ function Profile() {
             /* DOCTOR INFORMATION CARD */
             <div className="card" style={{ padding: '2.5rem', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }}>
               <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '1.75rem' }}>
-                <StethoscopeIcon size={20} color="var(--primary-color)" style={{ marginRight: '0.6rem' }} />
+                <UserIcon size={20} color="var(--primary-color)" style={{ marginRight: '0.6rem' }} />
                 <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.25rem', fontWeight: '700' }}>
                   Doctor Information
                 </h3>
@@ -846,7 +855,7 @@ function Profile() {
             </p>
 
             <button 
-              onClick={() => setShowLogoutModal(true)} 
+              onClick={() => showConfirm('Are you sure you want to log out of your account?', handleLogout)} 
               className="btn btn-danger" 
               style={{ 
                 width: '100%', 
@@ -864,68 +873,6 @@ function Profile() {
 
         </div>
       </div>
-
-      {/* ==========================================
-          LOGOUT CONFIRMATION MODAL
-         ========================================== */}
-      {showLogoutModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999
-        }}>
-          <div className="card" style={{
-            maxWidth: '400px',
-            width: '90%',
-            padding: '2.5rem 2rem',
-            textAlign: 'center',
-            boxShadow: 'var(--shadow-lg)',
-            border: '1px solid var(--border-color)'
-          }}>
-            <div style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              width: '50px', 
-              height: '50px', 
-              borderRadius: '50%', 
-              backgroundColor: '#fee2e2', 
-              color: 'var(--danger-color)', 
-              marginBottom: '1rem'
-            }}>
-              <LogoutIcon size={24} style={{ color: 'var(--danger-color)', marginRight: 0 }} />
-            </div>
-            <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>Confirm Logout</h4>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.95rem', lineHeight: '1.5' }}>
-              Are you sure you want to log out of your account?
-            </p>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button 
-                onClick={() => setShowLogoutModal(false)} 
-                className="btn" 
-                style={{ flex: 1, backgroundColor: 'var(--text-secondary)' }}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleLogout} 
-                className="btn btn-danger" 
-                style={{ flex: 1 }}
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

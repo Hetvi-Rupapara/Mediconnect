@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ClockIcon, EmailIcon, CalendarIcon } from '../components/Icons';
+import { useNotification } from '../components/NotificationProvider.jsx';
 
 /**
  * DoctorDashboard Component
  * Portal dashboard that manages today's, upcoming, and past appointment statuses.
  */
 function DoctorDashboard() {
+  useEffect(() => {
+    document.title = 'MediConnect | Doctor Dashboard';
+  }, []);
+
+  const { showNotification, showConfirm } = useNotification();
   const navigate = useNavigate();
 
   // Doctor and connection states
@@ -24,9 +30,11 @@ function DoctorDashboard() {
   const [newDate, setNewDate] = useState('');
   const [availabilitySuccess, setAvailabilitySuccess] = useState('');
   const [availabilityError, setAvailabilityError] = useState('');
+  const [startTime, setStartTime] = useState('09:00 AM');
+  const [endTime, setEndTime] = useState('05:00 PM');
 
   useEffect(() => {
-    // Role verification check
+    // 1. Role verification check
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user'));
 
@@ -56,6 +64,8 @@ function DoctorDashboard() {
         setDoctorProfile(profileData);
         setWorkingDays(profileData.workingDays || profileData.availability || []);
         setUnavailableDates(profileData.unavailableDates || []);
+        setStartTime(profileData.startTime || '09:00 AM');
+        setEndTime(profileData.endTime || '05:00 PM');
         
         // Fetch all appointments for the doctor
         const appRes = await fetch('/api/appointments', {
@@ -81,31 +91,32 @@ function DoctorDashboard() {
 
   // Handle status update (Accept / Reject / Complete)
   const handleStatusChange = async (appointmentId, newStatus) => {
-    const confirmChange = window.confirm(`Are you sure you want to mark this appointment as ${newStatus}?`);
-    if (!confirmChange) return;
+    const actionText = newStatus === 'accepted' ? 'accept' : newStatus === 'rejected' ? 'reject' : 'complete';
+    showConfirm(`Are you sure you want to ${actionText} this appointment?`, async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/appointments/${appointmentId}/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/appointments/${appointmentId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
+        const updatedApp = await response.json();
 
-      const updatedApp = await response.json();
+        if (!response.ok) {
+          throw new Error(updatedApp.message || 'Failed to update status');
+        }
 
-      if (!response.ok) {
-        throw new Error(updatedApp.message || 'Failed to update status');
+        // Update the local appointments list state with the updated appointment details
+        setAppointments(appointments.map((app) => (app._id === appointmentId ? updatedApp : app)));
+        showNotification(`Appointment ${newStatus} successfully.`, 'success');
+      } catch (err) {
+        showNotification(`Error updating status: ${err.message}`, 'error');
       }
-
-      // Update the local appointments list state with the updated appointment details
-      setAppointments(appointments.map((app) => (app._id === appointmentId ? updatedApp : app)));
-    } catch (err) {
-      alert(`Error updating status: ${err.message}`);
-    }
+    });
   };
 
   // Toggle checkbox for regular working days list
@@ -131,7 +142,7 @@ function DoctorDashboard() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ workingDays })
+        body: JSON.stringify({ workingDays, startTime, endTime })
       });
 
       const data = await response.json();
@@ -344,7 +355,7 @@ function DoctorDashboard() {
                             </>
                           )}
 
-                          {app.status === 'accepted' && (
+                           {app.status === 'accepted' && (
                             <>
                               <Link
                                 to={`/consultation-record/${app._id}`}
@@ -353,13 +364,6 @@ function DoctorDashboard() {
                               >
                                 Consultation Record
                               </Link>
-                              <button
-                                onClick={() => handleStatusChange(app._id, 'completed')}
-                                className="btn"
-                                style={{ backgroundColor: 'var(--success-color)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                              >
-                                Complete
-                              </button>
                               <button
                                 onClick={() => handleStatusChange(app._id, 'rejected')}
                                 className="btn"
@@ -438,13 +442,6 @@ function DoctorDashboard() {
                               >
                                 Consultation Record
                               </Link>
-                              <button
-                                onClick={() => handleStatusChange(app._id, 'completed')}
-                                className="btn"
-                                style={{ backgroundColor: 'var(--success-color)', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                              >
-                                Complete
-                              </button>
                               <button
                                 onClick={() => handleStatusChange(app._id, 'rejected')}
                                 className="btn"
@@ -537,6 +534,36 @@ function DoctorDashboard() {
                           {day}
                         </label>
                       ))}
+                    </div>
+
+                    <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.9rem', color: 'var(--text-primary)' }}>Working Hours</label>
+                      <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>Start Time</span>
+                          <select
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                            style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.85rem', color: 'var(--text-primary)', backgroundColor: '#fff' }}
+                          >
+                            {['07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM'].map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.25rem' }}>End Time</span>
+                          <select
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                            style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.85rem', color: 'var(--text-primary)', backgroundColor: '#fff' }}
+                          >
+                            {['12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM'].map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
                     </div>
 
                     <button

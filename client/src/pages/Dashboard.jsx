@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { CalendarIcon, ClockIcon, LocationIcon, SearchIcon, AIIcon } from '../components/Icons';
+import { useNotification } from '../components/NotificationProvider.jsx';
 
 /**
  * Dashboard Component
  * Renders patient homepage summary, statistics, quick links, and inline profile editor.
  */
 function Dashboard() {
+  useEffect(() => {
+    document.title = 'MediConnect | Dashboard';
+  }, []);
+
+  const { showNotification, showConfirm } = useNotification();
   const navigate = useNavigate();
 
   // Profile and appointment states
@@ -78,32 +84,33 @@ function Dashboard() {
     loadDashboardData();
   }, [navigate]);
 
+
+
   // Handle appointment cancellation
-  const handleCancel = async (id) => {
-    const confirmCancel = window.confirm('Are you sure you want to cancel this appointment?');
-    if (!confirmCancel) return;
+  const handleCancel = (id) => {
+    showConfirm('Are you sure you want to cancel this appointment?', async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/appointments/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/appointments/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to cancel appointment');
         }
-      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to cancel appointment');
+        // Update local appointments list state
+        setAppointments(appointments.filter((app) => app._id !== id));
+        showNotification('Appointment cancelled successfully.', 'success');
+      } catch (err) {
+        showNotification(`Error cancelling appointment: ${err.message}`, 'error');
       }
-
-      // Update local appointments list state
-      setAppointments(appointments.filter((app) => app._id !== id));
-      alert('Appointment cancelled successfully.');
-    } catch (err) {
-      alert(`Error cancelling appointment: ${err.message}`);
-    }
+    });
   };
 
   // Submit profile details updates to backend
@@ -385,14 +392,13 @@ function Dashboard() {
             <Link to="/appointments" className="action-link-btn">
               <CalendarIcon size={18} style={{ marginRight: '0.5rem' }} /> My Appointments History
             </Link>
-            {/* AI Assistant page trigger placeholder */}
-            <button 
-              onClick={() => alert('AI Assistant features will be introduced in the next stage!')} 
+            <Link 
+              to="/ai-assistant" 
               className="action-link-btn"
-              style={{ width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1rem', display: 'flex', alignItems: 'center' }}
+              style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
             >
               <AIIcon size={18} style={{ marginRight: '0.5rem' }} /> Consult AI Health Assistant
-            </button>
+            </Link>
           </div>
         </div>
 

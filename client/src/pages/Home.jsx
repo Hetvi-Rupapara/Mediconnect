@@ -8,6 +8,10 @@ import { StethoscopeIcon, CalendarIcon, AIIcon } from '../components/Icons';
  * Removes debug statistics and displays actual marketing structure and platform value.
  */
 function Home() {
+  React.useEffect(() => {
+    document.title = 'MediConnect | Home';
+  }, []);
+
   // Check if a user is logged in to toggle CTA targets
   const isAuthenticated = !!localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user'));

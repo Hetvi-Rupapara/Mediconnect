@@ -6,6 +6,10 @@ import { EmailIcon, LocationIcon } from '../components/Icons';
  * Provides corporate contact details and a validated contact form.
  */
 function ContactUs() {
+  React.useEffect(() => {
+    document.title = 'MediConnect | Contact Us';
+  }, []);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');

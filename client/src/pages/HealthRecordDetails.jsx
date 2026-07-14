@@ -6,6 +6,10 @@ import { useParams, useNavigate } from 'react-router-dom';
  * Displays the complete, read-only consultation record details for patients.
  */
 function HealthRecordDetails() {
+  useEffect(() => {
+    document.title = 'MediConnect | Medical Records';
+  }, []);
+
   const { recordId } = useParams();
   const navigate = useNavigate();
 

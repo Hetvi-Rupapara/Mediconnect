@@ -1,7 +1,8 @@
 {
-  "name": "client",
+  "name": "mediconnect-client",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "React-based frontend interface for the MediConnect healthcare platform.",
   "type": "module",
   "scripts": {
     "dev": "vite",

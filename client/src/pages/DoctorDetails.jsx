@@ -18,6 +18,10 @@ function DoctorDetails() {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   useEffect(() => {
+    document.title = 'MediConnect | Doctor Details';
+  }, []);
+
+  useEffect(() => {
     const fetchDoctorDetails = async () => {
       try {
         const response = await fetch(`/api/doctors/${id}`);
@@ -28,6 +32,9 @@ function DoctorDetails() {
         }
 
         setDoctor(data);
+        if (data && data.name) {
+          document.title = `MediConnect | ${data.name}`;
+        }
       } catch (err) {
         setError(err.message);
         console.error('Error fetching doctor details:', err);

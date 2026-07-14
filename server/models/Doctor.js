@@ -46,6 +46,14 @@ const DoctorSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
+  startTime: {
+    type: String,
+    default: '09:00 AM'
+  },
+  endTime: {
+    type: String,
+    default: '05:00 PM'
+  },
   createdAt: {
     type: Date,
     default: Date.now
