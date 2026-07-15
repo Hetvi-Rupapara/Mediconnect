@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://mediconnect-backend.onrender.com/api/:path*"
+    }
+  ]
+}
