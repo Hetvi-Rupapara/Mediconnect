@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://mediconnect-backend.onrender.com/api/:path*"
+      "destination": "https://mediconnect-backend-7xps.onrender.com/api/:path*"
     },
     {
       "source": "/((?!api/).*)",
