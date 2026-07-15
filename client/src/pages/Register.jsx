@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * Register Component
@@ -34,7 +35,7 @@ function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -42,11 +43,7 @@ function Register() {
         body: JSON.stringify({ name, email, password, role })
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
+      const data = await handleApiResponse(response);
 
       // Store JWT token and basic user details in local storage
       localStorage.setItem('token', data.token);

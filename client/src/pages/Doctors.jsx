@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BriefcaseIcon, LocationIcon, DollarIcon, ShieldIcon } from '../components/Icons';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * Doctors Component
@@ -33,16 +34,12 @@ function Doctors() {
       setLoading(true);
       try {
         // Construct the query string dynamically
-        let url = `/api/doctors?`;
+        let url = `${API_BASE_URL}/api/doctors?`;
         if (search) url += `search=${encodeURIComponent(search)}&`;
         if (specialization) url += `specialization=${encodeURIComponent(specialization)}`;
 
         const response = await fetch(url);
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch doctors list');
-        }
+        const data = await handleApiResponse(response);
 
         setDoctors(data);
       } catch (err) {

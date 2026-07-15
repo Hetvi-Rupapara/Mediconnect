@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { LocationIcon, ShieldIcon, DollarIcon, ClockIcon, BriefcaseIcon } from '../components/Icons';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * DoctorDetails Component
@@ -24,12 +25,8 @@ function DoctorDetails() {
   useEffect(() => {
     const fetchDoctorDetails = async () => {
       try {
-        const response = await fetch(`/api/doctors/${id}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch doctor details');
-        }
+        const response = await fetch(`${API_BASE_URL}/api/doctors/${id}`);
+        const data = await handleApiResponse(response);
 
         setDoctor(data);
         if (data && data.name) {

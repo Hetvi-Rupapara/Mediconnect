@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { CalendarIcon, ClockIcon } from '../components/Icons';
 import { useNotification } from '../components/NotificationProvider.jsx';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * BookAppointment Component
@@ -160,12 +161,8 @@ function BookAppointment() {
 
     const fetchDoctor = async () => {
       try {
-        const response = await fetch(`/api/doctors/${doctorId}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch doctor details');
-        }
+        const response = await fetch(`${API_BASE_URL}/api/doctors/${doctorId}`);
+        const data = await handleApiResponse(response);
 
         setDoctor(data);
       } catch (err) {
@@ -196,11 +193,11 @@ function BookAppointment() {
     const fetchBookedSlots = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/appointments/booked?doctor=${doctorId}&date=${date}`, {
+        const response = await fetch(`${API_BASE_URL}/api/appointments/booked?doctor=${doctorId}&date=${date}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const data = await response.json();
-        if (response.ok) {
+        const data = await handleApiResponse(response);
+        if (data) {
           setBookedSlots(data);
           
           // Clear selected slot if it gets booked in the meantime
@@ -284,7 +281,7 @@ function BookAppointment() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/appointments', {
+      const response = await fetch(`${API_BASE_URL}/api/appointments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -298,11 +295,7 @@ function BookAppointment() {
         })
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to book appointment');
-      }
+      const data = await handleApiResponse(response);
 
       hideLoading();
       showNotification('Appointment booked successfully!', 'success', () => {

@@ -2,40 +2,44 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserIcon, EmailIcon, StethoscopeIcon, CalendarIcon, BriefcaseIcon, DollarIcon, LocationIcon, ShieldIcon, LogoutIcon } from '../components/Icons';
 import { useNotification } from '../components/NotificationProvider.jsx';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * Profile Component
- * Redesigned Account Profile Settings Dashboard.
- * Delivers a premium, healthcare-focused UI/UX matching Practo/Apollo styles.
- * Organizes information cleanly using descriptive cards, dynamic counters, and custom action links.
+ * Renders complete profile administration for both patient and doctor roles.
+ * Features tabs for details edit, password change, stats summary, and availability.
  */
 function Profile() {
-  useEffect(() => {
-    document.title = 'MediConnect | Profile';
+  React.useEffect(() => {
+    document.title = 'MediConnect | Profile Settings';
   }, []);
 
-  const { showNotification, showConfirm, showLoading, hideLoading } = useNotification();
   const navigate = useNavigate();
+  const { showNotification, showConfirm, showLoading, hideLoading } = useNotification();
 
-  // Authentication & Global states
+  // Role toggle indicator
   const [userRole, setUserRole] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+
+  // Core Profiles states
+  const [patientProfile, setPatientProfile] = useState(null);
+  const [doctorProfile, setDoctorProfile] = useState(null);
   const [appointmentCount, setAppointmentCount] = useState(0);
 
-  // Patient profile states
-  const [patientProfile, setPatientProfile] = useState(null);
+  // loading and error states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Patient field states
   const [patientEditMode, setPatientEditMode] = useState(false);
   const [patientName, setPatientName] = useState('');
   const [patientEmail, setPatientEmail] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [patientAge, setPatientAge] = useState('');
-  const [patientSaveLoading, setPatientSaveLoading] = useState(false);
-  const [patientSuccess, setPatientSuccess] = useState('');
   const [patientError, setPatientError] = useState('');
+  const [patientSuccess, setPatientSuccess] = useState('');
+  const [patientSaveLoading, setPatientSaveLoading] = useState(false);
 
-  // Doctor profile states
-  const [doctorProfile, setDoctorProfile] = useState(null);
+  // Doctor field states
   const [doctorEditMode, setDoctorEditMode] = useState(false);
   const [doctorName, setDoctorName] = useState('');
   const [doctorSpecialization, setDoctorSpecialization] = useState('');
@@ -43,30 +47,23 @@ function Profile() {
   const [doctorFees, setDoctorFees] = useState('');
   const [doctorHospital, setDoctorHospital] = useState('');
   const [doctorBio, setDoctorBio] = useState('');
-  const [doctorSaveLoading, setDoctorSaveLoading] = useState(false);
-  const [doctorSuccess, setDoctorSuccess] = useState('');
   const [doctorError, setDoctorError] = useState('');
+  const [doctorSuccess, setDoctorSuccess] = useState('');
+  const [doctorSaveLoading, setDoctorSaveLoading] = useState(false);
 
-  // Doctor Availability states
+  // Availability schedule states
   const [availability, setAvailability] = useState([]);
-  const [availSaveLoading, setAvailSaveLoading] = useState(false);
-  const [availSuccess, setAvailSuccess] = useState('');
   const [availError, setAvailError] = useState('');
+  const [availSuccess, setAvailSuccess] = useState('');
+  const [availSaveLoading, setAvailSaveLoading] = useState(false);
 
-  // Password change states
+  // Password fields states
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
-
-  // Password form toggle state
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-
-
-
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -78,38 +75,36 @@ function Profile() {
     const fetchInitialData = async () => {
       try {
         // 1. Fetch user core profile
-        const userRes = await fetch('/api/auth/profile', {
+        const userRes = await fetch(`${API_BASE_URL}/api/auth/profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const userData = await userRes.json();
-
-        if (!userRes.ok) {
+        
+        let userData;
+        try {
+          userData = await handleApiResponse(userRes);
+        } catch (parseErr) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          throw new Error(userData.message || 'Session expired');
+          throw parseErr;
         }
 
         setUserRole(userData.role);
 
         // 2. Fetch user appointments count dynamically
-        const appRes = await fetch('/api/appointments', {
+        const appRes = await fetch(`${API_BASE_URL}/api/appointments`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (appRes.ok) {
-          const appData = await appRes.json();
+        const appData = await handleApiResponse(appRes);
+        if (appData) {
           setAppointmentCount(appData.length);
         }
 
         if (userData.role === 'doctor') {
           // 3. Fetch doctor details
-          const docRes = await fetch('/api/doctors/profile/me', {
+          const docRes = await fetch(`${API_BASE_URL}/api/doctors/profile/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
-          const docData = await docRes.json();
-
-          if (!docRes.ok) {
-            throw new Error(docData.message || 'Failed to retrieve doctor details');
-          }
+          const docData = await handleApiResponse(docRes);
 
           setDoctorProfile(docData);
           setDoctorName(docData.name || '');
@@ -164,7 +159,7 @@ function Profile() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/auth/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -178,10 +173,7 @@ function Profile() {
         })
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update profile');
-      }
+      const data = await handleApiResponse(response);
 
       setPatientProfile(data);
       localStorage.setItem('user', JSON.stringify({
@@ -212,7 +204,7 @@ function Profile() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/doctors/profile/me', {
+      const response = await fetch(`${API_BASE_URL}/api/doctors/profile/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -228,10 +220,7 @@ function Profile() {
         })
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update doctor profile');
-      }
+      const data = await handleApiResponse(response);
 
       setDoctorProfile(data);
       // Sync user local storage name
@@ -268,7 +257,7 @@ function Profile() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/doctors/profile/availability', {
+      const response = await fetch(`${API_BASE_URL}/api/doctors/profile/availability`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -277,10 +266,7 @@ function Profile() {
         body: JSON.stringify({ availability })
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update availability schedule');
-      }
+      const data = await handleApiResponse(response);
 
       setDoctorProfile(data);
       hideLoading();
@@ -316,7 +302,7 @@ function Profile() {
     showLoading('Updating password...');
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/auth/password', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -325,10 +311,7 @@ function Profile() {
         body: JSON.stringify({ currentPassword, newPassword })
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to change password');
-      }
+      const data = await handleApiResponse(response);
 
       hideLoading();
       showNotification('Password updated successfully!', 'success');

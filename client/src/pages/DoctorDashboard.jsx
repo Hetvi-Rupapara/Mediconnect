@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ClockIcon, EmailIcon, CalendarIcon } from '../components/Icons';
 import { useNotification } from '../components/NotificationProvider.jsx';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * DoctorDashboard Component
@@ -52,14 +53,10 @@ function DoctorDashboard() {
     const loadDashboardData = async () => {
       try {
         // Fetch doctor profile data
-        const profileRes = await fetch('/api/doctors/profile/me', {
+        const profileRes = await fetch(`${API_BASE_URL}/api/doctors/profile/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const profileData = await profileRes.json();
-        
-        if (!profileRes.ok) {
-          throw new Error(profileData.message || 'Failed to fetch doctor profile');
-        }
+        const profileData = await handleApiResponse(profileRes);
         
         setDoctorProfile(profileData);
         setWorkingDays(profileData.workingDays || profileData.availability || []);
@@ -68,14 +65,10 @@ function DoctorDashboard() {
         setEndTime(profileData.endTime || '05:00 PM');
         
         // Fetch all appointments for the doctor
-        const appRes = await fetch('/api/appointments', {
+        const appRes = await fetch(`${API_BASE_URL}/api/appointments`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const appData = await appRes.json();
-
-        if (!appRes.ok) {
-          throw new Error(appData.message || 'Failed to fetch today\'s appointments');
-        }
+        const appData = await handleApiResponse(appRes);
 
         setAppointments(appData);
       } catch (err) {
@@ -95,7 +88,7 @@ function DoctorDashboard() {
     showConfirm(`Are you sure you want to ${actionText} this appointment?`, async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/appointments/${appointmentId}/status`, {
+        const response = await fetch(`${API_BASE_URL}/api/appointments/${appointmentId}/status`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -104,11 +97,7 @@ function DoctorDashboard() {
           body: JSON.stringify({ status: newStatus })
         });
 
-        const updatedApp = await response.json();
-
-        if (!response.ok) {
-          throw new Error(updatedApp.message || 'Failed to update status');
-        }
+        const updatedApp = await handleApiResponse(response);
 
         // Update the local appointments list state with the updated appointment details
         setAppointments(appointments.map((app) => (app._id === appointmentId ? updatedApp : app)));
@@ -136,7 +125,7 @@ function DoctorDashboard() {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('/api/doctors/profile/working-days', {
+      const response = await fetch(`${API_BASE_URL}/api/doctors/profile/working-days`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -145,10 +134,7 @@ function DoctorDashboard() {
         body: JSON.stringify({ workingDays, startTime, endTime })
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to save availability days');
-      }
+      const data = await handleApiResponse(response);
 
       setDoctorProfile(data);
       setAvailabilitySuccess('Regular working days updated successfully.');
@@ -167,7 +153,7 @@ function DoctorDashboard() {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('/api/doctors/profile/unavailable-dates', {
+      const response = await fetch(`${API_BASE_URL}/api/doctors/profile/unavailable-dates`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,10 +162,7 @@ function DoctorDashboard() {
         body: JSON.stringify({ date: newDate })
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to add unavailable date');
-      }
+      const data = await handleApiResponse(response);
 
       setDoctorProfile(data);
       setUnavailableDates(data.unavailableDates);
@@ -198,15 +181,12 @@ function DoctorDashboard() {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`/api/doctors/profile/unavailable-dates/${dateStr}`, {
+      const response = await fetch(`${API_BASE_URL}/api/doctors/profile/unavailable-dates/${dateStr}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to remove unavailable date');
-      }
+      const data = await handleApiResponse(response);
 
       setDoctorProfile(data);
       setUnavailableDates(data.unavailableDates);

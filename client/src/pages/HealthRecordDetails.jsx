@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * HealthRecordDetails Component
@@ -26,14 +27,10 @@ function HealthRecordDetails() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`/api/health-records/${recordId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/health-records/${recordId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch record details');
-      }
+      const data = await handleApiResponse(response);
 
       setRecord(data);
       setLoading(false);

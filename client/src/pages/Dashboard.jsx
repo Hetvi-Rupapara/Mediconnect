@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { CalendarIcon, ClockIcon, LocationIcon, SearchIcon, AIIcon } from '../components/Icons';
 import { useNotification } from '../components/NotificationProvider.jsx';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * Dashboard Component
@@ -47,30 +48,28 @@ function Dashboard() {
     const loadDashboardData = async () => {
       try {
         // Fetch patient profile
-        const profileRes = await fetch('/api/auth/profile', {
+        const profileRes = await fetch(`${API_BASE_URL}/api/auth/profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const profileData = await profileRes.json();
-
-        if (!profileRes.ok) {
+        
+        let profileData;
+        try {
+          profileData = await handleApiResponse(profileRes);
+        } catch (parseErr) {
           // If token expired/invalid, clear local credentials
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          throw new Error(profileData.message || 'Session expired');
+          throw parseErr;
         }
 
         setProfile(profileData);
         setEditData({ name: profileData.name, email: profileData.email });
 
         // Fetch patient appointments
-        const appRes = await fetch('/api/appointments', {
+        const appRes = await fetch(`${API_BASE_URL}/api/appointments`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const appData = await appRes.json();
-
-        if (!appRes.ok) {
-          throw new Error(appData.message || 'Failed to retrieve appointments');
-        }
+        const appData = await handleApiResponse(appRes);
 
         setAppointments(appData);
       } catch (err) {
@@ -84,25 +83,19 @@ function Dashboard() {
     loadDashboardData();
   }, [navigate]);
 
-
-
   // Handle appointment cancellation
   const handleCancel = (id) => {
     showConfirm('Are you sure you want to cancel this appointment?', async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/appointments/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/appointments/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to cancel appointment');
-        }
+        const data = await handleApiResponse(response);
 
         // Update local appointments list state
         setAppointments(appointments.filter((app) => app._id !== id));
@@ -122,7 +115,7 @@ function Dashboard() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/auth/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -131,11 +124,7 @@ function Dashboard() {
         body: JSON.stringify({ name: editData.name, email: editData.email })
       });
 
-      const updatedUser = await response.json();
-
-      if (!response.ok) {
-        throw new Error(updatedUser.message || 'Failed to update profile');
-      }
+      const updatedUser = await handleApiResponse(response);
 
       // Update local states and localStorage metadata
       setProfile(updatedUser);

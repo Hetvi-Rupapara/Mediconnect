@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { CalendarIcon, ClockIcon, LocationIcon } from '../components/Icons';
 import { useNotification } from '../components/NotificationProvider.jsx';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * Appointments Component
@@ -31,32 +32,27 @@ function Appointments() {
     const fetchAppointmentsAndRecords = async () => {
       try {
         // 1. Fetch all appointments
-        const response = await fetch('/api/appointments', {
+        const response = await fetch(`${API_BASE_URL}/api/appointments`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch appointments');
-        }
+        const data = await handleApiResponse(response);
 
         setAppointments(data);
 
         // 2. Fetch health records belonging to this logged-in patient
         const user = JSON.parse(localStorage.getItem('user'));
         if (user && user.id) {
-          const recResponse = await fetch(`/api/health-records/patient/${user.id}`, {
+          const recResponse = await fetch(`${API_BASE_URL}/api/health-records/patient/${user.id}`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
           });
-          const recData = await recResponse.json();
-
-          if (recResponse.ok) {
+          const recData = await handleApiResponse(recResponse);
+          if (recData) {
             setRecords(recData);
           }
         }
@@ -78,18 +74,14 @@ function Appointments() {
     showConfirm('Are you sure you want to cancel this appointment?', async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/appointments/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/appointments/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to cancel appointment');
-        }
+        const data = await handleApiResponse(response);
 
         // Update local state by removing the cancelled appointment
         setAppointments(appointments.filter((app) => app._id !== id));

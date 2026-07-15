@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useNotification } from '../components/NotificationProvider.jsx';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * ConsultationRecord Component
@@ -40,14 +41,10 @@ function ConsultationRecord() {
       const token = localStorage.getItem('token');
       
       // 1. Fetch appointments list to find details for the target appointmentId
-      const appResponse = await fetch('/api/appointments', {
+      const appResponse = await fetch(`${API_BASE_URL}/api/appointments`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const appointmentsList = await appResponse.json();
-
-      if (!appResponse.ok) {
-        throw new Error(appointmentsList.message || 'Failed to fetch appointment details');
-      }
+      const appointmentsList = await handleApiResponse(appResponse);
 
       const targetApp = appointmentsList.find(app => app._id === appointmentId);
       if (!targetApp) {
@@ -59,12 +56,12 @@ function ConsultationRecord() {
 
       // 2. Fetch existing health records for this patient to check if one is already created for this appointment
       const patientId = targetApp.patient._id || targetApp.patient;
-      const recordsResponse = await fetch(`/api/health-records/patient/${patientId}`, {
+      const recordsResponse = await fetch(`${API_BASE_URL}/api/health-records/patient/${patientId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const recordsList = await recordsResponse.json();
+      const recordsList = await handleApiResponse(recordsResponse);
 
-      if (recordsResponse.ok) {
+      if (recordsList) {
         const existingRecord = recordsList.find(rec => rec.appointmentId === appointmentId);
         if (existingRecord) {
           // Pre-populate form fields if record already exists
@@ -108,7 +105,7 @@ function ConsultationRecord() {
         followUpDate: followUpDate || null
       };
 
-      const url = recordId ? `/api/health-records/${recordId}` : '/api/health-records';
+      const url = recordId ? `${API_BASE_URL}/api/health-records/${recordId}` : `${API_BASE_URL}/api/health-records`;
       const method = recordId ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -120,11 +117,7 @@ function ConsultationRecord() {
         body: JSON.stringify(payload)
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to save health record');
-      }
+      const data = await handleApiResponse(response);
 
       // Update local state with saved record details
       if (!recordId) {
@@ -158,7 +151,7 @@ function ConsultationRecord() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/appointments/${appointmentId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/appointments/${appointmentId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -167,11 +160,7 @@ function ConsultationRecord() {
         body: JSON.stringify({ status: 'completed' })
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to complete appointment');
-      }
+      const data = await handleApiResponse(response);
 
       hideLoading();
       showNotification('Appointment completed successfully.', 'success', () => {

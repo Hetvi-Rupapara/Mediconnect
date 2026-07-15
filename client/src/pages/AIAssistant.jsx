@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AIIcon, StethoscopeIcon } from '../components/Icons';
+import { API_BASE_URL, handleApiResponse } from '../config/api.js';
 
 /**
  * AIAssistant Component
@@ -72,7 +73,7 @@ function AIAssistant() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch('/api/ai/chat', {
+      const response = await fetch(`${API_BASE_URL}/api/ai/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,11 +82,7 @@ function AIAssistant() {
         body: JSON.stringify({ message: trimmedInput })
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch reply from assistant');
-      }
+      const data = await handleApiResponse(response);
 
       // Append AI reply
       setMessages((prev) => [...prev, { sender: 'ai', text: data.reply }]);
