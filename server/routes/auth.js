@@ -281,4 +281,22 @@ router.put('/password', auth, async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get current authenticated user's profile details from database
+ * @access  Private
+ */
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Fetch me error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error retrieving session user details' });
+  }
+});
+
 module.exports = router;

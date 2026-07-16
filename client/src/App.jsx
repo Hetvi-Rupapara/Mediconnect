@@ -19,15 +19,67 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ConsultationRecord from './pages/ConsultationRecord';
 import HealthRecordDetails from './pages/HealthRecordDetails';
 import { StethoscopeIcon, HomeIcon, UserIcon, CalendarIcon, AIIcon, DashboardIcon, EmailIcon } from './components/Icons';
+import { API_BASE_URL, handleApiResponse } from './config/api';
 
 /**
  * App Component
  * Handles routing, global layout, and session navigation for MediConnect.
  */
 function App() {
-  // Check session variables
+  const [loading, setLoading] = React.useState(!!localStorage.getItem('token'));
+  const [currentUser, setCurrentUser] = React.useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch (e) {
+      return null;
+    }
+  });
+
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    const validateSession = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await handleApiResponse(response);
+        if (data && data.success && data.user) {
+          // Sync localStorage user metadata
+          const syncUser = {
+            id: data.user._id,
+            name: data.user.name,
+            email: data.user.email,
+            role: data.user.role
+          };
+          localStorage.setItem('user', JSON.stringify(syncUser));
+          setCurrentUser(syncUser);
+        } else {
+          throw new Error('Session invalid');
+        }
+      } catch (err) {
+        console.error('Session validation failed:', err.message);
+        // Clear invalid token/session
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    validateSession();
+  }, []);
+
+  // Check session variables based on validated state
   const isAuthenticated = !!localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = currentUser;
   const isDoctor = user && user.role === 'doctor';
 
   // Handle logout: clear token and user details, and redirect
@@ -36,6 +88,25 @@ function App() {
     localStorage.removeItem('user');
     window.location.href = '/'; // Simple redirect to homepage
   };
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: 'var(--bg-color)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            border: '4px solid rgba(0,0,0,0.1)',
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            borderLeftColor: 'var(--primary-color)',
+            animation: 'mcSpinner 1s linear infinite',
+            margin: '0 auto 1.5rem auto'
+          }}></div>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: '500' }}>Validating session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>
@@ -136,7 +207,7 @@ function App() {
             <Route 
               path="/book/:doctorId" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role="patient">
                   <BookAppointment />
                 </ProtectedRoute>
               } 
@@ -144,7 +215,7 @@ function App() {
             <Route 
               path="/appointments" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role="patient">
                   <Appointments />
                 </ProtectedRoute>
               } 
@@ -152,7 +223,7 @@ function App() {
             <Route 
               path="/ai-assistant" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role="patient">
                   <AIIcon size={18} style={{ display: 'none' }} />
                   <AIAssistant />
                 </ProtectedRoute>
@@ -169,7 +240,7 @@ function App() {
             <Route 
               path="/dashboard" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role="patient">
                   <Dashboard />
                 </ProtectedRoute>
               } 
@@ -178,7 +249,7 @@ function App() {
             <Route 
               path="/health-records/:recordId" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role="patient">
                   <HealthRecordDetails />
                 </ProtectedRoute>
               } 
@@ -188,7 +259,7 @@ function App() {
             <Route 
               path="/doctor/dashboard" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role="doctor">
                   <DoctorDashboard />
                 </ProtectedRoute>
               } 
@@ -196,7 +267,7 @@ function App() {
             <Route 
               path="/consultation-record/:appointmentId" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute role="doctor">
                   <ConsultationRecord />
                 </ProtectedRoute>
               } 
