@@ -155,30 +155,6 @@ The client dashboard will compile and open at `http://localhost:5173`.
 
 ---
 
-## Application Screenshots
-
-Placeholders for future screenshots:
-
-### 1. Home Landing Page
-`[Screenshot Placeholder: Home Landing Page]`
-
-### 2. Patient Dashboard
-`[Screenshot Placeholder: Patient Dashboard Summary]`
-
-### 3. Specialty-Based Slot Booking
-`[Screenshot Placeholder: Specialty-Based Slot Booking Grid]`
-
-### 4. Doctor Dashboard & Schedule Planner
-`[Screenshot Placeholder: Doctor Dashboard & Leave Planner]`
-
-### 5. Consultation Record Editor
-`[Screenshot Placeholder: Consultation Record Editor]`
-
-### 6. AI Healthcare Chat Assistant
-`[Screenshot Placeholder: AI Assistant Chat Interface]`
-
----
-
 ## Future Improvements Roadmap
 - Implement WebSockets/Socket.io to enable real-time chat between doctor and patient profiles.
 - Support file attachments (PDF/Images) inside consultation reports for diagnostic test results.
