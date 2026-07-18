@@ -10,11 +10,13 @@ const mongoose = require('mongoose');
 router.get('/', (req, res) => {
   // Check the state of the mongoose connection: 1 means connected
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  const dbHost = mongoose.connection.host || 'unknown';
 
   res.json({
     status: 'ok',
     message: 'MediConnect Backend is running and connected!',
-    database: dbStatus
+    database: dbStatus,
+    host: dbHost
   });
 });
 
